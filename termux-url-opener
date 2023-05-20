@@ -1,0 +1,20 @@
+#!/bin/bash
+
+echo -e "1. Audio : 160kbps Opus\n2. Best Video + Best Audio (Max Resolution)"
+
+while true;do
+    read -p "> " x
+    if [ -z $x ]; then
+        echo -e "Choose an option"
+    elif [ $x == 1 ];then
+        echo -e "Downloading Audio"
+        yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -x --audio-format opus --audio-quality 0 --embed-thumbnail "$1"
+        break
+    elif [ $x == 2 ]; then
+        yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -f "bv+ba/b" "$1"
+        break
+    else
+        echo -e "Invalid Input: ${x}"
+    fi
+done
+

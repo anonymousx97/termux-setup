@@ -37,6 +37,7 @@ customize(){
     customize_all(){
         echo -e "${green}Customising All.${white}"
         setup_aria2
+        setup_ytdlp
         setup_rxfetch
         change_cursor
         change_ui
@@ -49,20 +50,23 @@ customize(){
     else
         declare -A option_dict
         option_dict[1]="setup_aria2"
-        option_dict[2]="setup_rxfetch"
-        option_dict[3]="change_cursor"
-        option_dict[4]="change_ui"
-        option_dict[5]="customize_all"
-        option_dict[6]="start"
-        option_dict[7]="exit_"
+        option_dict[2]="setup_ytdlp"
+        option_dict[3]="setup_rxfetch"
+        option_dict[4]="change_cursor"
+        option_dict[5]="change_ui"
+        option_dict[6]="customize_all"
+        option_dict[7]="start"
+        option_dict[8]="exit_"
         local options="
   1. Setup Aria2 Shortcut.
-  2. Setup Rxfetch.
-  3. Change Cursor Style.
-  4. Change Background and UI colour.
-  5. All of the above.
-  6. Go back to previous menu.
-  7. Exit
+  2. Enable Downloading Audio or Video
+     by sharing YT-DLP supported links to termux.
+  3. Setup Rxfetch.
+  4. Change Cursor Style.
+  5. Change Background and UI colour.
+  6. All of the above.
+  7. Go back to previous menu.
+  8. Exit
 "
         ask "${options}" "${menu}" "option_dict"
     fi
@@ -132,6 +136,12 @@ setup_aria2(){
     fi
 }
 
+setup_ytdlp(){
+    echo -e "Setting Up YT-DLP link share Trigger."
+    mkdir -p $HOME/bin
+    curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/termux-url-opener
+    echo -e "${green}Done.${white}"
+}
 
 setup_rxfetch(){
     echo -e "\n2. Setting up Rxfetch"
