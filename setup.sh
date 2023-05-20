@@ -142,19 +142,19 @@ setup_aria2(){
 setup_ytdlp(){
     echo -e "\n2. Downloading and Setting Up YT-DLP link share Trigger."
     mkdir -p $HOME/bin
-    curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/termux-url-opener
+    curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/termux-url-opener
     echo -e "${green}Done.${white}"
 }
 
 setup_prettify(){
     echo -e "\n3. Downloading and Setting up Prettify script." 
-    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/prettify
+    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/prettify
     echo -e "${green}Done.${white}"
 }
 
 setup_rxfetch(){
     echo -e "\n4. Downloading and Setting up Rxfetch"
-    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/rxfetch
+    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/rxfetch
     motd="#!$SHELL\nbash rxfetch"
 
     if [ -f ~/.termux/motd.sh ] && ! $defaults ; then
@@ -213,7 +213,7 @@ exit_(){
 
 change_ui(){
     echo -e "\n6. Changing UI and background colour."
-    curl -s -O --output-dir $HOME/.termux https://raw.githubusercontent.com/anonymousx97/termux-setup/main/colors.properties
+    curl -s -O --output-dir $HOME/.termux https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/colors.properties
     echo -e "\n${green}Applying Changes.${white}"
     termux-reload-settings
     echo -e "${green}Done.${white}"
