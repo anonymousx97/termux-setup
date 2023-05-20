@@ -11,7 +11,7 @@ start(){
     clear
     local menu="${green}Main Menu:${white}"
     local options="
-  1. Install packages
+  1. Install Essential packages.
   2. Customize Termux
   3. Both (Uses Presets for customisation)
   4. Exit
@@ -119,11 +119,15 @@ package_setup(){
         ffmpeg \
         aria2
 
-    # Update pip packages
+    # Update and Install pip packages
     pip install -U \
         wheel \
         setuptools \
-        yt-dlp
+        yt-dlp \
+        black \
+        isort \
+        autopep8 \
+        autoflake
 }
 
 
@@ -140,7 +144,7 @@ setup_aria2(){
 }
 
 setup_ytdlp(){
-    echo -e "\n2. Downloading and Setting Up YT-DLP link share Trigger."
+    echo -e "\n2. Downloading files and Setting Up YT-DLP link share Trigger."
     mkdir -p $HOME/bin
     curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/termux-url-opener
     echo -e "${green}Done.${white}"
