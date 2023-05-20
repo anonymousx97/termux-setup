@@ -153,6 +153,7 @@ setup_ytdlp(){
 setup_prettify(){
     echo -e "\n3. Downloading and Setting up Prettify script." 
     curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/prettify
+    chmod u+x $PATH/prettify
     echo -e "${green}Done.${white}"
 }
 
