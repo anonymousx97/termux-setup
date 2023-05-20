@@ -1,0 +1,14 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+if [ -z "$1" ];then
+    echo "Give a file or path to files."
+    exit
+elif ! [ -f "$1" ] && ! [ -d "$1" ]; then
+    echo "No such file or directory."
+    exit
+fi
+
+autopep8 --verbose --in-place --recursive --aggressive --aggressive --ignore=W605 "$1"
+autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports "$1"
+isort "$1"
+black -C -l 150 "$1"

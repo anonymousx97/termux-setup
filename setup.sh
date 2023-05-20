@@ -51,22 +51,24 @@ customize(){
         declare -A option_dict
         option_dict[1]="setup_aria2"
         option_dict[2]="setup_ytdlp"
-        option_dict[3]="setup_rxfetch"
-        option_dict[4]="change_cursor"
-        option_dict[5]="change_ui"
-        option_dict[6]="customize_all"
-        option_dict[7]="start"
-        option_dict[8]="exit_"
+        option_dict[3]="setup_prettify"
+        option_dict[4]="setup_rxfetch"
+        option_dict[5]="change_cursor"
+        option_dict[6]="change_ui"
+        option_dict[7]="customize_all"
+        option_dict[8]="start"
+        option_dict[9]="exit_"
         local options="
   1. Setup Aria2 Shortcut.
   2. Enable Downloading Audio or Video
      by sharing YT-DLP supported links to termux.
-  3. Setup Rxfetch.
-  4. Change Cursor Style.
-  5. Change Background and UI colour.
-  6. All of the above.
-  7. Go back to previous menu.
-  8. Exit
+  3. Setup 'prettify' Bunch of py formatting tools.
+  4. Setup Rxfetch.
+  5. Change Cursor Style.
+  6. Change Background and UI colour.
+  7. All of the above.
+  8. Go back to previous menu.
+  9. Exit
 "
         ask "${options}" "${menu}" "option_dict"
     fi
@@ -137,14 +139,20 @@ setup_aria2(){
 }
 
 setup_ytdlp(){
-    echo -e "Setting Up YT-DLP link share Trigger."
+    echo -e "\n2. Downloading and Setting Up YT-DLP link share Trigger."
     mkdir -p $HOME/bin
     curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/termux-url-opener
     echo -e "${green}Done.${white}"
 }
 
+setup_prettify(){
+    echo -e "\n3. Downloading Prettify script." 
+    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/prettify
+    echo -e "${green}Done.${white}"
+}
+
 setup_rxfetch(){
-    echo -e "\n2. Setting up Rxfetch"
+    echo -e "\n4. Downloading and Setting up Rxfetch"
     curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/rxfetch
     motd="#!$SHELL\nbash rxfetch"
 
@@ -166,7 +174,7 @@ setup_rxfetch(){
 
 
 change_cursor(){
-    echo -e "\n3. Changing Cursor"
+    echo -e "\n5. Changing Cursor"
     local menu="Cursor Menu:"
     local options="
   1. Change to ${green}|${white} (bar)
@@ -203,7 +211,7 @@ exit_(){
 
 
 change_ui(){
-    echo -e "Changing UI and background colour."
+    echo -e "\n6. Changing UI and background colour."
     curl -s -O --output-dir $PATH ~/.termux https://raw.githubusercontent.com/anonymousx97/termux-setup/main/colors.properties
     echo -e "\n${green}Applying Changes.${white}"
     termux-reload-settings
