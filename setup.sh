@@ -200,7 +200,7 @@ change_cursor(){
     fi
 
     # Change Blink Rate
-    sed -i "s/terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" ~/.termux/termux.properties
+    sed -i "s/terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
     echo -e "${green}Done.${white}"
 }
 
@@ -213,7 +213,7 @@ exit_(){
 
 change_ui(){
     echo -e "\n6. Changing UI and background colour."
-    curl -s -O --output-dir $PATH ~/.termux https://raw.githubusercontent.com/anonymousx97/termux-setup/main/colors.properties
+    curl -s -O --output-dir $HOME/.termux https://raw.githubusercontent.com/anonymousx97/termux-setup/main/colors.properties
     echo -e "\n${green}Applying Changes.${white}"
     termux-reload-settings
     echo -e "${green}Done.${white}"
