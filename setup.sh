@@ -190,9 +190,18 @@ change_cursor(){
   3. Change to Default Block style.
   4. Exit
 "
-    block(){ printf '\e[1 q'; }
-    bar(){ printf '\e[6 q'; }
-    underscore(){ printf '\e[4 q'; }
+    block(){ 
+        printf '\e[1 q'
+        style="block"
+    }
+    bar(){ 
+        printf '\e[6 q'
+        style="bar"
+    }
+    underscore(){ 
+        printf '\e[4 q'
+        style="underline"
+    }
 
     if ! $defaults ; then
         clear
@@ -208,6 +217,7 @@ change_cursor(){
 
     # Change Blink Rate
     sed -i "s/terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
+    sed -i "s/terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
     echo -e "${green}Done.${white}"
 }
 
