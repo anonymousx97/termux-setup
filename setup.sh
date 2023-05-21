@@ -36,6 +36,7 @@ customize(){
     local menu="${green}Customisation Menu:${white}"
     customize_all(){
         echo -e "${green}Customising All.${white}"
+        defaults=true
         setup_aria2
         setup_ytdlp
         setup_prettify
@@ -67,7 +68,7 @@ customize(){
   4. Setup Rxfetch.
   5. Change Cursor Style.
   6. Change Background and UI colour.
-  7. All of the above.
+  7. All of the above. ( Uses Presets )
   8. Go back to previous menu.
   9. Exit
 "
@@ -139,7 +140,7 @@ setup_aria2(){
         chmod u+x $PATH/arc
         echo -e "${green}Done.${white}"
     else
-        echo -e "${red}A script with the name arc exists in ${PATH}${white}"
+        echo -e "${red}A script with the name 'arc' exists in ${PATH}${white}"
     fi
 }
 

@@ -14,50 +14,59 @@ cyan="\033[1;36m"
 reset="\033[0m"
 bgyellow="\033[1;43;33m"
 bgwhite="\033[1;47;37m"
-c0=${reset}
-c1=${magenta}
-c2=${green}
-c3=${white}
-c4=${blue}
-c5=${red}
-c6=${yellow}
-c7=${cyan}
-c8=${black}
-c9=${bgyellow}
-c10=${bgwhite}
+
+to_print=()
+
 
 function getCodeName() {
   codename="$(getprop ro.product.board)"
 }
 
+
 function getClientBase() {
   client_base="$(getprop ro.com.google.clientidbase)"
 }
 
+
 function getModel() {
-  model="$(getprop ro.product.vendor.model)"
+  model="$(getprop ro.product.system.model)"
+  if [ "${model}" ] ; then
+    to_print+=("  ┃                       ┃  ${magenta}phone${reset}  ${model}")
+  else
+    to_print+=("  ┃                       ┃")
+  fi
 }
+
 
 function getDistro() {
   os="$(uname -o) $(uname -m)"
+  to_print+=("  ┃          ${white}•${black}_${white}•${reset}          ┃  ${green}os${reset}     ${os}")
 }
+
 
 function getKernel() {
   kernel="$(uname -r)"
+  to_print+=("  ┃          ${black}${reset}${bgyellow}oo${reset}${black}|${reset}          ┃  ${cyan}ker${reset}    ${kernel}")
 }
+
 
 function getTotalPackages() {
   aptpackages=$(apt list --installed 2>/dev/null | wc -l)
-  dpkgpackages=$(dpkg-query -l | wc -l)
+  to_print+=("  ┃         ${black}/${reset}${bghwite} ${reset}${black}'\'${reset}         ┃  ${blue}pkgs${reset}   ${aptpackages}")
 }
+
 
 function getShell() {
   shell="$(basename $SHELL)"
+  to_print+=("  ┃        ${bgyellow}(${reset}${black}\_;/${reset}${bgyellow})${reset}         ┃  ${red}sh${reset}     ${shell}")
 }
+
 
 function getUptime() {
   uptime="$(uptime --pretty | sed 's/up//')"
+  to_print+=("  ┃                       ┃  ${yellow}up${reset}    ${uptime}")
 }
+
 
 function getMemoryUsage() {
   #memory="$(free --mega | sed -n -E '2s/^[^0-9]*([0-9]+) *([0-9]+).*/'"${space}"'\2 \/ \1MB/p')"
@@ -66,8 +75,10 @@ function getMemoryUsage() {
   _TOTAL="$(echo ${_GREP_ONE_ROW} | awk '{print $2}')"
   _USED="$(echo ${_GREP_ONE_ROW} | awk '{print $3}')"
 
-  memory="${_USED}MB / ${_TOTAL}MB"
+  memory="${_USED}MB ${red}/${white} ${_TOTAL}MB"
+  to_print+=("  ┃   Android 🧡 Termux   ┃  ${magenta}ram${reset}    ${memory}")
 }
+
 
 function getDiskUsage() {
   _MOUNTED_ON="/data"
@@ -78,8 +89,28 @@ function getDiskUsage() {
   _USE="$(echo ${_GREP_ONE_ROW} | awk '{print $5}' | sed 's/%//')"
   _MOUNTED="$(echo ${_GREP_ONE_ROW} | awk '{print $6}')"
 
-  storage="${_USED}B / ${_SIZE}B = ${_AVAIL}B (${_USE}%)"
+  storage="${_USED}B${red} / ${white}${_SIZE}B = ${green}${_AVAIL}B${white} (${_USE}%)"
+  to_print+=("  ┃                       ┃  ${green}disk${reset}   ${storage}")
 }
+
+
+function addInit() {
+  to_print+=("  ┃                       ┃  ${yellow}init${reset}   init.rc")
+}
+
+
+function printRx() {
+  echo -e "\n\n"
+  echo -e "  ┏━━━━━━━━━━━━━━━━━━━━━━━┓"
+  echo -e "  ┃  ${magenta}r${green}x${cyan}f${blue}e${red}t${yellow}${cyan}c${magenta}h${reset}     ${red}${reset}  ${yellow}${reset}  ${cyan}${reset}  ┃  ${codename}${red}@${reset}${client_base}"
+  echo -e "  ┣━━━━━━━━━━━━━━━━━━━━━━━┫"
+
+  for i in "${to_print[@]}";do echo -e "${i}";done
+
+  echo -e "  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${magenta}━━━${green}━━━${white}━━━${blue}━━━${red}━━━${yellow}━━━${cyan}━━━"
+  echo -e "\n\n"
+}
+
 
 function main() {
   getCodeName
@@ -89,31 +120,11 @@ function main() {
   getKernel
   getTotalPackages
   getShell
+  addInit
   getUptime
   getMemoryUsage
   getDiskUsage
+  printRx
 }
 
 main
-
-echo -e "\n\n"
-echo -e "  ┏━━━━━━━━━━━━━━━━━━━━━━━┓"
-echo -e "  ┃  ${c1}r${c2}x${c7}f${c4}e${c5}t${c6}${c7}c${c1}h${c0}     ${c5}${c0}  ${c6}${c0}  ${c7}${c0}  ┃  ${codename}${c5}@${c0}${client_base}"
-echo -e "  ┣━━━━━━━━━━━━━━━━━━━━━━━┫"
-echo -e "  ┃                       ┃  ${c1}phone${c0}  ${model}"
-echo -e "  ┃          ${c3}•${c8}_${c3}•${c0}          ┃  ${c2}os${c0}     ${os}"
-echo -e "  ┃          ${c8}${c0}${c9}oo${c0}${c8}|${c0}          ┃  ${c7}ker${c0}    ${kernel}"
-echo -e "  ┃         ${c8}/${c0}${c10} ${c0}${c8}'\'${c0}         ┃  ${c4}pkgs${c0}   ${aptpackages}"
-echo -e "  ┃        ${c9}(${c0}${c8}\_;/${c0}${c9})${c0}         ┃  ${c5}sh${c0}     ${shell}"
-echo -e "  ┃                       ┃  ${c6}up${c0}    ${uptime}"
-echo -e "  ┃  Android  🧡 Termux   ┃  ${c1}ram${c0}    ${memory}"
-echo -e "  ┃                       ┃  ${c2}disk${c0}   ${storage}"
-echo -e "  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${c1}━━━${c2}━━━${c3}━━━${c4}━━━${c5}━━━${c6}━━━${c7}━━━"
-echo -e "\n\n"
-
-#echo -e "     •_•       "
-#echo -e "     oo|       "
-#echo -e "    / '\'"
-#echo -e "   (\_;/)"
-
-
