@@ -160,6 +160,7 @@ setup_prettify(){
 setup_rxfetch(){
     echo -e "\n4. Downloading and Setting up Rxfetch"
     curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/rxfetch
+    chmod u+x $PATH/rxfetch
     motd="#!$SHELL\nbash rxfetch"
 
     if [ -f ~/.termux/motd.sh ] && ! $defaults ; then
