@@ -108,17 +108,19 @@ package_setup(){
 
     # Install necessary packages
     apt install -y \
-        python \
-        python-pip \
-        python-pillow \
-        wget \
+        aria2 \
         curl \
+        ffmpeg \
         git \
         gh \
         openssh \
+        python \
+        python-pip \
+        python-pillow \
         sshpass \
-        ffmpeg \
-        aria2
+        tmux \
+        tsu \
+        wget 
 
     # Update and Install pip packages
     pip install -U \
@@ -135,7 +137,7 @@ package_setup(){
 setup_aria2(){
     echo -e "\n1. Setting up Aria2 shortcut"
     if ! [ -f $PATH/arc ] || $defaults ; then
-        arc="#!/data/data/com.termux/files/usr/bin/bash\nread -p 'Link or Magnet\n> ' x\necho\naria2c -d /sdcard/Download --console-log-level=warn \$x"
+        local arc="#!/data/data/com.termux/files/usr/bin/bash\nread -p 'Link or Magnet\n> ' x\necho\naria2c -d /sdcard/Download --console-log-level=warn --summary-interval=0 --seed-time=0 \$x"
         echo -e $arc > $PATH/arc
         chmod u+x $PATH/arc
         echo -e "${green}Done.${white}"
@@ -162,7 +164,7 @@ setup_rxfetch(){
     echo -e "\n4. Downloading and Setting up Rxfetch"
     curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/rxfetch
     chmod u+x $PATH/rxfetch
-    motd="#!$SHELL\nbash rxfetch"
+    local motd="#!$SHELL\nbash rxfetch"
 
     if [ -f ~/.termux/motd.sh ] && ! $defaults ; then
         echo -e "${red}A custom start script exists in the path ${HOME}/.termux/motd.sh${white}"
@@ -207,7 +209,7 @@ change_cursor(){
         clear
         declare -A cursor_dict
         cursor_dict[1]="bar"
-        cursor_dict[2]="underscore"
+        cursor_dict[2]="underline"
         cursor_dict[3]="block"
         cursor_dict[4]="exit_"
         ask "${options}" "${menu}" "cursor_dict"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "1. Audio : 160kbps Opus\n2. Best Video + Best Audio (Max Resolution)"
+echo -e "1. Audio : 160kbps Opus\n2. Best Video + Best Audio (Max Resolution)\n3. Download with custom args."
 
 while true;do
     read -p "> " x
@@ -12,9 +12,15 @@ while true;do
         break
     elif [ $x == 2 ]; then
         yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -f "bv+ba/b" "$1"
+    elif [ $x == 3 ]; then
+        echo -e "yt-dlp args:"
+        read -p "> " args
+        yt-dlp "${args} ${1}"
         break
     else
         echo -e "Invalid Input: ${x}"
     fi
 done
+
+sleep 5
 

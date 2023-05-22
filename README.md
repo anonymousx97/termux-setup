@@ -29,18 +29,19 @@ https://github.com/anonymousx97/termux-setup/assets/88324835/a1067ff9-9c31-40d8-
 * Packages Used:
   * APT :
 
-        python
-        python-pip
-        python-pillow
-        wget
-        curl
-        git
-        gh
-        openssh
-        sshpass
-        ffmpeg
-        aria2
-        tmux
+        aria2 
+        curl 
+        ffmpeg 
+        git 
+        gh 
+        openssh 
+        python 
+        python-pip 
+        python-pillow 
+        sshpass 
+        tmux 
+        tsu 
+        wget 
 
   * PIP :
 
