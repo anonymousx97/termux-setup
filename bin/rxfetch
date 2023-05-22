@@ -57,7 +57,16 @@ function getTotalPackages() {
 
 
 function getShell() {
-  shell="$(basename $SHELL)"
+  if [ -G ~/.termux/shell ]; then
+    shell="$(basename $(realpath ~/.termux/shell))"
+  else
+    for file in /data/data/com.termux/files/usr/bin/bash /data/data/com.termux/files/usr/bin/sh /system/bin/sh; do
+      if [ -x $file ]; then
+        shell="$(basename $file)"
+        break
+      fi
+      done
+    fi
   to_print+=("  ┃        ${bgyellow}(${reset}${black}\_;/${reset}${bgyellow})${reset}         ┃  ${red}sh${reset}     ${shell}")
 }
 

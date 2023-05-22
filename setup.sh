@@ -135,7 +135,7 @@ package_setup(){
 setup_aria2(){
     echo -e "\n1. Setting up Aria2 shortcut"
     if ! [ -f $PATH/arc ] || $defaults ; then
-        arc="#!$PATH/bash\ncd /sdcard/Download\nread -p 'Link or Magnet\n> ' x\naria2c $x"
+        arc="#!$PATH/bash\ncd /sdcard/Download\nread -p 'Link or Magnet\n> ' x\naria2c \$x"
         echo -e $arc > $PATH/arc
         chmod u+x $PATH/arc
         echo -e "${green}Done.${white}"
