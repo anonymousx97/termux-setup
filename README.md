@@ -9,17 +9,13 @@
 <details>
 <summary>  termux-url-opener:</summary>
 
-
 https://github.com/anonymousx97/termux-setup/assets/88324835/9ba12b6a-e53c-47df-88b8-51585666cd5e
-
 
 </details>
 <details>
 <summary>  arc:</summary>
 
-
-https://github.com/anonymousx97/termux-setup/assets/88324835/7d67de9e-a975-4fa9-aef7-853c43c52392
-
+https://github.com/anonymousx97/termux-setup/assets/88324835/a1067ff9-9c31-40d8-82bf-c2c10dbc11f3
 
 </details>
 
