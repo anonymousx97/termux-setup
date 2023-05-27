@@ -30,7 +30,7 @@ function getClientBase() {
 
 function getModel() {
   model="$(getprop ro.product.system.model)"
-  if [ "${model}" ] ; then
+  if ! [ -z "${model}" ] ; then
     to_print+=("  ┃                       ┃  ${magenta}phone${reset}  ${model}")
   else
     to_print+=("  ┃                       ┃")
@@ -90,16 +90,15 @@ function getMemoryUsage() {
 
 
 function getDiskUsage() {
-  _MOUNTED_ON="/data"
-  _GREP_ONE_ROW="$(df -h | grep ${_MOUNTED_ON})"
-  _SIZE="$(echo ${_GREP_ONE_ROW} | awk '{print $2}')"
-  _USED="$(echo ${_GREP_ONE_ROW} | awk '{print $3}')"
-  _AVAIL="$(echo ${_GREP_ONE_ROW} | awk '{print $4}')"
-  _USE="$(echo ${_GREP_ONE_ROW} | awk '{print $5}' | sed 's/%//')"
-  _MOUNTED="$(echo ${_GREP_ONE_ROW} | awk '{print $6}')"
-
-  storage="${_USED}B${red} / ${white}${_SIZE}B = ${green}${_AVAIL}B${white} (${_USE}%)"
-  to_print+=("  ┃                       ┃  ${green}disk${reset}   ${storage}")
+  _STORAGE_INFO=($(df -h | grep /storage/emulated))
+  if ! [ -z $_STORAGE_INFO ]; then
+    _SIZE=${_STORAGE_INFO[1]}
+    _USED=${_STORAGE_INFO[2]}
+    _AVAIL=${_STORAGE_INFO[3]}
+    _USE=${_STORAGE_INFO[4]}
+    storage="${_USED}B${red} / ${white}${_SIZE}B = ${green}${_AVAIL}B${white} (${_USE})"
+    to_print+=("  ┃                       ┃  ${green}disk${reset}   ${storage}")
+  fi
 }
 
 

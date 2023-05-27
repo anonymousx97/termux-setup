@@ -200,7 +200,7 @@ change_cursor(){
         printf '\e[6 q'
         style="bar"
     }
-    underscore(){ 
+    underline(){ 
         printf '\e[4 q'
         style="underline"
     }
@@ -214,12 +214,12 @@ change_cursor(){
         cursor_dict[4]="exit_"
         ask "${options}" "${menu}" "cursor_dict"
     else
-        underscore
+        underline
     fi
 
     # Change Blink Rate
     sed -i "s/terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
-    sed -i "s/terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
+    sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
     echo -e "${green}Done.${white}"
 }
 
@@ -238,4 +238,14 @@ change_ui(){
     echo -e "${green}Done.${white}"
 }
 
+save_setup_sh(){
+    if ! [ -f $PATH/setup-termux ]; then
+        echo -e "\nSaving setup.sh for future use."
+        echo -e '#!/bin/bash\nbash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"' > $PATH/setup-termux
+        chmod u+x $PATH/setup-termux
+        echo -e "${green}Done\n${white}You can now use ${green}'setup-termux'${white} to get back to this menu."
+    fi
+}
+
 start
+save_setup_sh
