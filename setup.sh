@@ -192,35 +192,23 @@ change_cursor(){
   3. Change to Default Block style.
   4. Exit
 "
-    block(){ 
-        printf '\e[1 q'
-        style="block"
-    }
-    bar(){ 
-        printf '\e[6 q'
-        style="bar"
-    }
-    underline(){ 
-        printf '\e[4 q'
-        style="underline"
-    }
-
     if ! $defaults ; then
         clear
         declare -A cursor_dict
-        cursor_dict[1]="bar"
-        cursor_dict[2]="underline"
-        cursor_dict[3]="block"
+        cursor_dict[1]="eval printf '\e[6 q' && export style=bar"
+        cursor_dict[2]="eval printf '\e[4 q' && export style=underline"
+        cursor_dict[3]="eval printf '\e[1 q' && export style=block"
         cursor_dict[4]="exit_"
         ask "${options}" "${menu}" "cursor_dict"
     else
-        underline
+        printf '\e[4 q'
+        style=underline
     fi
-
+    # Set the style in termux properties 
+    sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
     # Change Blink Rate
     sed -i "s/terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
-    sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
-    echo -e "${green}Done.${white}"
+   echo -e "${green}Done.${white}"
 }
 
 
@@ -231,8 +219,18 @@ exit_(){
 
 
 change_ui(){
-    echo -e "\n6. Changing UI and background colour."
-    curl -s -O --output-dir $HOME/.termux https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/colors.properties
+    if $defaults; then 
+        echo -e "\n6. Changing UI and background colour."
+        local colors="colors.properties.dark_blue"
+    else
+        local colour_options="\n1. Set Dark Blue\n2. Set Light Blue"
+        declare -A colour_dict
+        colour_dict[1]="export colors=colors.properties.dark_blue"
+        colour_dict[2]="export colors=colors.properties.light_blue"
+        clear
+        ask "${colour_options}" "${green}UI Menu${white}" "colour_dict"
+    fi
+    curl -s -o $HOME/.termux/colors.properties https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/"${colors}"
     echo -e "\n${green}Applying Changes.${white}"
     termux-reload-settings
     echo -e "${green}Done.${white}"
