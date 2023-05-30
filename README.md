@@ -1,7 +1,8 @@
 # Termux Setup
 
 ### A script to auto-install few packages and customise termux.
-![image](https://github.com/anonymousx97/termux-setup/assets/88324835/52b919c7-e4d0-4c5e-abb7-07d1226c4983)
+![image](https://github.com/anonymousx97/termux-setup/assets/88324835/424eafa8-d0bb-4b6b-a033-b45b5d878dcc)
+
 
 >It was made because Ryuk was ~~LAZY~~ tired of setting up termux again and again. XD
 
