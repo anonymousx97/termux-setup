@@ -207,7 +207,7 @@ change_cursor(){
     # Set the style in termux properties 
     sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
     # Change Blink Rate
-    sed -i "s/terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
+    sed -i "s/.*terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
    echo -e "${green}Done.${white}"
 }
 
