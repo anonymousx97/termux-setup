@@ -97,7 +97,7 @@ function getDiskUsage() {
     for _su in /sbin/su /system/sbin/su /system/bin/su /system/xbin/su /su/bin/su /magisk/.core/bin/su
     do
         if [ -x $_su ]; then
-            _STORAGE_INFO=($($_su -c "df -h | grep -w ' /data'"))
+            _STORAGE_INFO=($($_su -c "df -h | grep '/data/media'"))
             break
         fi
     done
