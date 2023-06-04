@@ -67,7 +67,7 @@ customize(){
   3. Setup 'prettify' Bunch of py formatting tools.
   4. Setup Rxfetch.
   5. Change Cursor Style.
-  6. Change Background and UI colour.
+  6. Change Colour and Font.
   7. All of the above. ( Uses Presets )
   8. Go back to previous menu.
   9. Exit
@@ -212,28 +212,28 @@ change_cursor(){
 }
 
 
-exit_(){
-    echo -e "${green}Exiting...${white}"
-    exit
-}
-
-
 change_ui(){
-    if $defaults; then 
-        echo -e "\n6. Changing UI and background colour."
-        local colors="colors.properties.dark_blue"
-    else
-        local colour_options="\n1. Set Dark Blue\n2. Set Light Blue"
-        declare -A colour_dict
-        colour_dict[1]="export colors=colors.properties.dark_blue"
-        colour_dict[2]="export colors=colors.properties.light_blue"
+    local colors="colors.properties.dark_blue"
+    if ! $defaults; then 
+        echo -e "\n6. Changing Colour and Font."
+        local ui_options="\n1. Set Dark Blue\n2. Set Light Blue"
+        declare -A ui_dict
+        ui_dict[1]="export colors=colors.properties.dark_blue"
+        ui_dict[2]="export colors=colors.properties.light_blue"
         clear
-        ask "${colour_options}" "${green}UI Menu${white}" "colour_dict"
+        ask "${ui_options}" "${green}UI Menu${white}" "ui_dict"
     fi
     curl -s -o $HOME/.termux/colors.properties https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/"${colors}"
+    wget -q -O $HOME/.termux/font.ttf https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/MesloLGS_NF_Bold.ttf
     echo -e "\n${green}Applying Changes.${white}"
     termux-reload-settings
     echo -e "${green}Done.${white}"
+}
+
+
+exit_(){
+    echo -e "${green}Exiting...${white}"
+    exit
 }
 
 save_setup_sh(){
