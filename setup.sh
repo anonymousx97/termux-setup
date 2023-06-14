@@ -27,6 +27,9 @@ start(){
     start_options[3]="both"
     start_options[4]="exit_"
     ask "${options}" "${menu}" "start_options"
+    if ! [ "$( ls /sdcard/ 2> /dev/null )" ]; then
+        termux-setup-storage
+    fi
 }
 
 
@@ -137,7 +140,7 @@ package_setup(){
 setup_aria2(){
     echo -e "\n1. Setting up Aria2 shortcut"
     if ! [ -f $PATH/arc ] || $defaults ; then
-        local arc="#!/data/data/com.termux/files/usr/bin/bash\nread -p 'Link or Magnet\n> ' x\necho\naria2c -d /sdcard/Download --console-log-level=warn --summary-interval=0 --seed-time=0 \$x"
+        local arc="#!/data/data/com.termux/files/usr/bin/bash\nread -p 'Link or Magnet\n> ' x\necho\naria2c -d /sdcard/Download --console-log-level=warn --summary-interval=0 --seed-time=0 --file-allocation=none \$x"
         echo -e $arc > $PATH/arc
         chmod u+x $PATH/arc
         echo -e "${green}Done.${white}"
