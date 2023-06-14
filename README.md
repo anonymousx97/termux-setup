@@ -21,8 +21,13 @@ https://github.com/anonymousx97/termux-setup/assets/88324835/a1067ff9-9c31-40d8-
 </details>
 
 ### Installation
-  ```bash
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"
+Download Termux:
+[**GitHub**](https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_universal.apk) | [**F-Droid**](https://f-droid.org/repo/com.termux_118.apk)  
+
+Run:  
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"
   ```
 ### Credits 
 * By: Ryuk [ [TG](https://t.me/anonymousx97) | [GitHub](https://github.com/anonymousx97) ]
