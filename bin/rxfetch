@@ -84,7 +84,7 @@ function getMemoryUsage() {
   _TOTAL="$(echo ${_GREP_ONE_ROW} | awk '{print $2}')"
   _USED="$(echo ${_GREP_ONE_ROW} | awk '{print $3}')"
 
-  memory="${_USED}MB ${red}/${white} ${_TOTAL}MB"
+  memory="${_USED}MB ${red}/${reset} ${_TOTAL}MB"
   to_print+=("  ┃   Android 🧡 Termux   ┃  ${magenta}ram${reset}    ${memory}")
 }
 
@@ -111,7 +111,7 @@ function getDiskUsage() {
   _USED=${_STORAGE_INFO[2]}
   _AVAIL=${_STORAGE_INFO[3]}
   _USE=${_STORAGE_INFO[4]}
-  storage="${_USED}B${red} / ${white}${_SIZE}B = ${green}${_AVAIL}B${white} (${_USE})"
+  storage="${_USED}B${red} / ${reset}${_SIZE}B = ${green}${_AVAIL}B${reset} (${_USE})"
   to_print+=("  ┃                       ┃  ${green}disk${reset}   ${storage}")
 }
 

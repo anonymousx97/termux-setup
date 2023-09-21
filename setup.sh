@@ -3,7 +3,7 @@
 # By Ryuk Github | TG : [ anonymousx97 ]
 
 red="\033[1;31m"
-white="\033[1;37m"
+white="\033[0m"
 green="\033[1;32m"
 defaults=false
 
@@ -13,19 +13,22 @@ start(){
     local options="
   1. Install Essential packages.
   2. Customize Termux
-  3. Both (Uses Presets for customisation)
-  4. Exit
+  3. Setup Debian in Termux.
+  4. All (Uses Presets for customisation)
+  5. Exit
 "
-    both(){
+    all(){
         defaults=true
         package_setup
         customize
+        setup_debian
     }
     declare -A start_options
     start_options[1]="package_setup"
     start_options[2]="customize"
-    start_options[3]="both"
-    start_options[4]="exit_"
+    start_options[3]="setup_debian"
+    start_options[4]="all"
+    start_options[5]="exit_"
     ask "${options}" "${menu}" "start_options"
     if ! [ "$( ls /sdcard/ 2> /dev/null )" ]; then
         termux-setup-storage
@@ -123,7 +126,7 @@ package_setup(){
         sshpass \
         tmux \
         tsu \
-        wget 
+        wget \
 
     # Update and Install pip packages
     pip install -U \
@@ -138,16 +141,43 @@ package_setup(){
 
 
 setup_aria2(){
-    echo -e "\n1. Setting up Aria2 shortcut"
+    echo -e "\n1. Downloading Aria2 shortcut"
     if ! [ -f $PATH/arc ] || $defaults ; then
-        local arc="#!/data/data/com.termux/files/usr/bin/bash\nread -p 'Link or Magnet\n> ' x\necho -e "\${x}" >> $HOME/.arc_history\necho\naria2c -d /sdcard/Download --console-log-level=warn --summary-interval=0 --seed-time=0 --file-allocation=none \$x"
-        echo -e "${arc}" > $PATH/arc
+        curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
         chmod u+x $PATH/arc
         echo -e "${green}Done.${white}"
     else
         echo -e "${red}A script with the name 'arc' exists in ${PATH}${white}"
     fi
 }
+
+setup_debian(){
+    apt update
+    apt install -y x11-repo \
+    proot \
+    proot-distro \
+    termux-x11-nightly \
+    pulseaudio 
+
+    proot-distro install debian
+
+    proot-distro login debian  --termux-home --shared-tmp -- bash -c "\
+    apt update && \
+    apt install -y --no-install-recommends \
+    firefox-esr \
+    xfce4 \
+    xfce4-goodies \
+    locales \
+    fonts-noto-cjk && \
+    echo en_US.UTF-8 UTF-8 >> /etc/locale.gen && \
+    locale-gen && \
+    echo 'LANG=en_US.UTF-8' > /etc/locale.conf "
+    curl -s -O --output-dir $HOME https://raw.githubusercontent.com/anonymousx97/termux-setup/main/scripts/debian.sh
+    echo -e 'alias dcli="proot-distro login debian --termux-home --shared-tmp" \nalias dgui="bash debian.sh"' >> $HOME/.bashrc
+    echo "Done."
+    echo -e "You can now use '${green}dcli${white}' for debian cli and '${green}dgui${white}' for GUI (Termux x11 app required)."
+}
+
 
 setup_ytdlp(){
     echo -e "\n2. Downloading files and Setting Up YT-DLP link share Trigger."
@@ -204,8 +234,8 @@ change_cursor(){
         cursor_dict[4]="exit_"
         ask "${options}" "${menu}" "cursor_dict"
     else
-        printf '\e[4 q'
-        style=underline
+        printf '\e[6 q'
+        style=bar
     fi
     # Set the style in termux properties 
     sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
