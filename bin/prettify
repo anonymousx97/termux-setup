@@ -10,5 +10,5 @@ fi
 
 autopep8 --verbose --in-place --recursive --aggressive --aggressive --ignore=W605 "$1"
 autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports "$1"
-isort "$1"
+isort --honor-noqa "$1"
 black -C "$1"
