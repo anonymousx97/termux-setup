@@ -85,7 +85,7 @@ customize(){
 
 
 ask(){
-    local header=" What do you want to do?"
+    local header="What do you want to do?"
     local option_text="$1"
     local menu="$2"
     local dict_name=$3
@@ -160,20 +160,42 @@ setup_debian(){
     pulseaudio 
 
     proot-distro install debian
+    clear
+    local options="
+1. Install xfce4
+2. Install KDE
+3. Exit
+"
+    declare -A wm_dict
+    wm_dict[1]="export wm='xfce4xfce4 xfce4-goodies' wm_cmd=startxfce4"
+    wm_dict[2]="export wm='kde-standard' wm_cmd=startplasma-x11"
+    wm_dict[3]="exit_"
+
+    ask "${options}" "Window Manager Menu:" "wm_dict"
 
     proot-distro login debian  --termux-home --shared-tmp -- bash -c "\
     apt update && \
     apt install -y --no-install-recommends \
     firefox-esr \
-    xfce4 \
-    xfce4-goodies \
+    ${wm} \
     locales \
     fonts-noto-cjk && \
     echo en_US.UTF-8 UTF-8 >> /etc/locale.gen && \
     locale-gen && \
     echo 'LANG=en_US.UTF-8' > /etc/locale.conf "
+
     curl -s -O --output-dir $HOME https://raw.githubusercontent.com/anonymousx97/termux-setup/main/scripts/debian.sh
-    echo -e 'alias dcli="proot-distro login debian --termux-home --shared-tmp" \nalias dgui="bash debian.sh"' >> $HOME/.bashrc
+    sed -i "s/wm_start_cmd/${wm_cmd}/" $HOME/debian.sh
+
+    local bash_history_fix='
+check_distro(){
+    if [[ "$(whoami)" == "root" ]]; then
+        export HISTFILE=".debian_history"
+    fi
+}
+check_distro
+'
+    echo -e 'alias dcli="proot-distro login debian --termux-home --shared-tmp -- bash" \nalias dgui="bash debian.sh"\n${bash_history_fix}' >> $HOME/.bashrc
     echo "Done."
     echo -e "You can now use '${green}dcli${white}' for debian cli and '${green}dgui${white}' for GUI (Termux x11 app required)."
 }
