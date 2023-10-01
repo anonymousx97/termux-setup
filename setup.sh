@@ -143,7 +143,7 @@ package_setup(){
 setup_aria2(){
     echo -e "\n1. Downloading Aria2 shortcut"
     if ! [ -f $PATH/arc ] || $defaults ; then
-        curl -s -O --output-dir $PATH/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
+        curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
         chmod u+x $PATH/arc
         echo -e "${green}Done.${white}"
     else
