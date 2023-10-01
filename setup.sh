@@ -153,7 +153,8 @@ setup_aria2(){
 
 setup_debian(){
     apt update
-    apt install -y x11-repo \
+    apt install -y root-repo x11-repo
+    apt install -y \
     proot \
     proot-distro \
     termux-x11-nightly \
