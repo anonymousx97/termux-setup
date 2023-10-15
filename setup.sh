@@ -192,7 +192,7 @@ setup_debian(){
     echo '
 check_distro(){
     if [[ "$(whoami)" == "root" ]]; then
-        export HISTFILE="~/.debian_history"
+        export HISTFILE=~/.debian_history
     fi
 }
 check_distro
