@@ -130,7 +130,7 @@ function printRx() {
   for i in "${to_print[@]}";do echo -e "${i}";done
 
   echo -e "  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${magenta}━━━${green}━━━${white}━━━${blue}━━━${red}━━━${yellow}━━━${cyan}━━━"
-  echo -e "\n\n"
+  echo -e "\n\n${reset}"
 }
 
 

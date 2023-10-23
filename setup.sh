@@ -12,22 +12,21 @@ start(){
     local menu="${green}Main Menu:${white}"
     local options="
   1. Install Essential packages.
-  2. Customize Termux
-  3. Setup Debian in Termux.
-  4. All (Uses Presets for customisation)
+  2. Customize Termux.
+  3. Both 1 & 2 (Uses Presets for customisation)
+  4. Setup Debian in Termux.
   5. Exit
 "
     all(){
         defaults=true
         package_setup
         customize
-        setup_debian
     }
     declare -A start_options
     start_options[1]="package_setup"
     start_options[2]="customize"
-    start_options[3]="setup_debian"
-    start_options[4]="all"
+    start_options[3]="all"
+    start_options[4]="setup_debian"
     start_options[5]="exit_"
     ask "${options}" "${menu}" "start_options"
     if ! [ "$( ls /sdcard/ 2> /dev/null )" ]; then
@@ -168,7 +167,7 @@ setup_debian(){
 3. Exit
 "
     declare -A wm_dict
-    wm_dict[1]="export wm=xfce4 wm2=xfce4-goodies wm_cmd=startxfce4"
+    wm_dict[1]="export wm=xfce4 wm_cmd=startxfce4"
     wm_dict[2]="export wm=kde-standard wm_cmd=startplasma-x11"
     wm_dict[3]="exit_"
 
@@ -176,12 +175,13 @@ setup_debian(){
 
     proot-distro login debian  --termux-home --shared-tmp -- bash -c "
     apt update && \
-    apt install -y --no-install-recommends \
+    apt install -y \
     firefox-esr \
     ${wm} \
-    ${wm2} \
+    xfce4-goodies \
     locales \
     fonts-noto-cjk && \
+    ln -sf /usr/share/zoneinfo/Asia/Calcutta /etc/localtime && \
     echo en_US.UTF-8 UTF-8 >> /etc/locale.gen && \
     locale-gen && \
     echo 'LANG=en_US.UTF-8' > /etc/locale.conf "
