@@ -1,0 +1,261 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+import termios
+import tty
+
+
+class Keys:
+    KEY = "\x1b"
+    UP = "\x1b[A"
+    DOWN = "\x1b[B"
+    BACKSPACE = "\x7f"
+    CTRL_C = "\x03"
+    CTRL_Z = "\x1a"
+
+    ALLOWED_KEYS = (KEY, UP, DOWN, BACKSPACE, CTRL_C, CTRL_Z)
+
+
+class Colors:
+    CYAN = "\033[96m"
+    RED = "\033[91m"
+    ENDC = "\033[0m"
+
+
+class InputMethods:
+    def move_cursor_up(self):
+        # Decrease Index by one to move up in menu
+        self.menu_index -= 1
+
+    def move_cursor_down(self):
+        # Increase Index by one to move down in menu
+        self.menu_index += 1
+
+    def is_invalid_input(self, user_input: str):
+        # Do not allow any keys
+        # Except alphabet, numbers or up/down/enter/cancel
+        return not user_input.isalnum() and user_input not in Keys.ALLOWED_KEYS
+
+    def handle_input(self, user_input):
+        if user_input == Keys.BACKSPACE:
+            self.package_name = self.package_name[:-1]
+
+            if not self.package_name:
+                self.menu_index = 0
+                self.menu_items.clear()
+
+        elif user_input == Keys.UP:
+            self.move_cursor_up()
+
+        elif user_input == Keys.DOWN:
+            self.move_cursor_down()
+
+        else:
+            self.package_name += user_input
+            self.menu_index = 0
+            self.menu_items.clear()
+
+
+class Menu:
+
+    def set_menu_items(self):
+        if not self.package_name:
+            return
+
+        # Get Top 5 matches for the input
+        self.menu_items = [
+            pkg
+            for pkg in INSTALLED_PACKAGES
+            if self.package_name.lower() in pkg.lower()
+        ][:5]
+
+    def construct_menu(self):
+        if not self.menu_items:
+            return ""
+
+        packages = self.menu_items.copy()
+        # Try to add > on the list index, if invalid add on first entry
+        try:
+            packages[self.menu_index] = (
+                f"{Colors.RED}>{Colors.ENDC} {Colors.CYAN}{packages[self.menu_index]}{Colors.ENDC}"
+            )
+        except IndexError:
+            packages[0] = (
+                f"{Colors.RED}>{Colors.ENDC} {Colors.CYAN}{packages[0]}{Colors.ENDC}"
+            )
+            self.menu_index = 0
+
+        return "\n" + "\n".join(packages)
+
+    def show_menu(self):
+        # Flush queued output
+        sys.stdout.flush()
+
+        # Create Menu Str
+        menu = self.construct_menu()
+
+        # Clear Input Line
+        sys.stdout.write("\033[K")
+
+        # Go to Beginning of the line
+        sys.stdout.write("\r")
+
+        # Print Input
+        sys.stdout.write("app name: " + self.package_name)
+
+        # Print Menu
+        sys.stdout.write(menu)
+        sys.stdout.flush()
+
+    def clear_old_menu(self):
+        if self.is_first_loop:
+            return
+
+        # Move Line to the end
+        sys.stdout.write("\033[E")
+
+        # Move one line up each step for each entry in menu and clear it
+        for _ in range(len(self.menu_items)):
+
+            sys.stdout.write("\033[F")
+            sys.stdout.write("\033[K")
+
+        # Reset the Current Location
+        sys.stdout.write("\033[F")
+
+
+class Manager(Menu, InputMethods):
+    def __init__(self):
+        # Hide Cursor
+        os.system("printf '\e[?25l'")
+
+        self.is_first_loop = True
+        self.package_name = ""
+        self.menu_index = 0
+        self.menu_items = []
+
+        # Save Old Terminal Settings to restore on exit.
+        self.stdin_file_descriptor = sys.stdin.fileno()
+        self.old_terminal_settings = termios.tcgetattr(self.stdin_file_descriptor)
+
+        # Set Terminal to Live Read Mode
+        tty.setcbreak(self.stdin_file_descriptor)
+
+    def start(self):
+        user_input = ""
+
+        # Show 'app:' on boot
+        self.show_menu()
+
+        # Move Window to 6 lines down
+        sys.stdout.write("\n" * 6 + "\033[F" * 6)
+
+        # Start Listening for Input
+        while 1:
+            self.clear_old_menu()
+            self.is_first_loop = False
+
+            try:
+                user_input = sys.stdin.read(1)
+
+                # No Spaces
+                if " " == user_input:
+                    continue
+
+                # If the up/down key was pressed, read it's value
+                if user_input in Keys.KEY:
+                    user_input += sys.stdin.read(2)
+
+            except KeyboardInterrupt:
+                self.exit()
+
+            # Perform the arg task on enter and exit
+            if self.package_name and user_input == "\n":
+                self.perform_task()
+                self.exit()
+
+            # Extra Precautions for Live Read mode
+            if user_input in (Keys.CTRL_C, Keys.CTRL_Z):
+                self.exit()
+
+            if self.is_invalid_input(user_input):
+                continue
+
+            # Parse input
+            self.handle_input(user_input)
+
+            # Fetch menu items and show it to user
+            if self.package_name or not self.is_first_loop:
+                self.set_menu_items()
+                self.show_menu()
+
+    def perform_task(self):
+        # Enable/Disable/Uninstall app
+        sys.stdout.write("\n")
+        package_name = self.menu_items[self.menu_index]
+        action_command = f"su -c 'pm {sys.argv[1]} --user 0 {package_name}'"
+        subprocess.call(action_command, shell=True)
+
+    def exit(self):
+        # Reset Terminal and Turn off Live Read mode.
+        termios.tcsetattr(
+            self.stdin_file_descriptor, termios.TCSADRAIN, self.old_terminal_settings
+        )
+
+        # Clear any Remaining characters on screen
+        sys.stdout.write("\r\033[K")
+
+        # Re-enable Cursor
+        os.system("printf '\e[?25h'")
+        sys.exit()
+
+
+def check_args():
+    # print info and exit if not arg is supplied or arg isn't valid
+    if len(sys.argv) == 2 and sys.argv[1] in ("enable", "disable", "uninstall"):
+        return
+
+    print("Invalid Command!\nUsage: apm [enable | disable | uninstall]")
+    sys.exit()
+
+
+def check_su():
+    # Look For SU binary to use.
+    locations = [
+        "/sbin/su",
+        "/system/sbin/su",
+        "/system/bin/su",
+        "/system/xbin/su",
+        "/su/bin/su",
+        "/magisk/.core/bin/su",
+    ]
+    for su_loc in locations:
+        if os.path.isfile(su_loc):
+            return
+
+    print("SU Binary not found\nAre you Rooted?")
+    sys.exit()
+
+
+if __name__ == "__main__":
+    check_args()
+    check_su()
+    # Get List of Installed packages using root
+    RAW_PACKAGES: list[str] = (
+        (subprocess.check_output("su -c pm list packages", shell=True))
+        .decode("utf-8")
+        .split()
+    )
+
+    # Strip package names
+    INSTALLED_PACKAGES = [pkg.removeprefix("package:") for pkg in RAW_PACKAGES]
+
+    manager = Manager()
+    try:
+        manager.start()
+    except Exception as e:
+        print(e)
+    finally:
+        manager.exit()

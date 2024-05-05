@@ -56,31 +56,32 @@ customize(){
         customize_all
     else
         declare -A option_dict
-        option_dict[1]="setup_aria2"
-        option_dict[2]="setup_ytdlp"
-        option_dict[3]="setup_prettify"
-        option_dict[4]="setup_rxfetch"
-        option_dict[5]="change_cursor"
-        option_dict[6]="change_ui"
-        option_dict[7]="customize_all"
-        option_dict[8]="start"
-        option_dict[9]="exit_"
+        option_dict[1]="setup_apm"
+        option_dict[2]="setup_aria2"
+        option_dict[3]="setup_ytdlp"
+        option_dict[4]="setup_prettify"
+        option_dict[5]="setup_rxfetch"
+        option_dict[6]="change_cursor"
+        option_dict[7]="change_ui"
+        option_dict[8]="customize_all"
+        option_dict[9]="start"
+        option_dict[10]="exit_"
         local options="
-  1. Setup Aria2 Shortcut.
-  2. Enable Downloading Audio or Video
+  1. Setup Android Package Manager by Ryuk.
+  2. Setup Aria2 Shortcut.
+  3. Enable Downloading Audio or Video
      by sharing YT-DLP supported links to termux.
-  3. Setup 'prettify' Bunch of py formatting tools.
-  4. Setup Rxfetch.
-  5. Change Cursor Style.
-  6. Change Colour and Font.
-  7. All of the above. ( Uses Presets )
-  8. Go back to previous menu.
-  9. Exit
+  4. Setup 'prettify' Bunch of py formatting tools.
+  5. Setup Rxfetch.
+  6. Change Cursor Style.
+  7. Change Colour and Font.
+  8. All of the above. ( Uses Presets )
+  9. Go back to previous menu.
+  10. Exit
 "
         ask "${options}" "${menu}" "option_dict"
     fi
 }
-
 
 
 ask(){
@@ -103,6 +104,7 @@ ask(){
         fi
     done
 }
+
 
 package_setup(){
     # Update Termux Package Repository
@@ -138,17 +140,6 @@ package_setup(){
         autoflake
 }
 
-
-setup_aria2(){
-    echo -e "\n1. Downloading Aria2 shortcut"
-    if ! [ -f $PATH/arc ] || $defaults ; then
-        curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
-        chmod u+x $PATH/arc
-        echo -e "${green}Done.${white}"
-    else
-        echo -e "${red}A script with the name 'arc' exists in ${PATH}${white}"
-    fi
-}
 
 setup_debian(){
     apt update
@@ -202,22 +193,42 @@ check_distro
 }
 
 
+setup_apm(){
+    echo -e "\n1. Downloading Android Package Manager By Ryuk."
+    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/apm
+    chmod u+x $PATH/apm
+    echo -e "${green}Done.${white} use 'apm' to call it."
+}
+
+
+setup_aria2(){
+    echo -e "\n2. Downloading Aria2 shortcut"
+    if ! [ -f $PATH/arc ] || $defaults ; then
+        curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
+        chmod u+x $PATH/arc
+        echo -e "${green}Done.${white}"
+    else
+        echo -e "${red}A script with the name 'arc' exists in ${PATH}${white}"
+    fi
+}
+
+
 setup_ytdlp(){
-    echo -e "\n2. Downloading files and Setting Up YT-DLP link share Trigger."
+    echo -e "\n3. Downloading files and Setting Up YT-DLP link share Trigger."
     mkdir -p $HOME/bin
     curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/termux-url-opener
     echo -e "${green}Done.${white}"
 }
 
 setup_prettify(){
-    echo -e "\n3. Downloading and Setting up Prettify script." 
+    echo -e "\n4. Downloading and Setting up Prettify script." 
     curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/prettify
     chmod u+x $PATH/prettify
     echo -e "${green}Done.${white}"
 }
 
 setup_rxfetch(){
-    echo -e "\n4. Downloading and Setting up Rxfetch"
+    echo -e "\n5. Downloading and Setting up Rxfetch"
     curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/rxfetch
     chmod u+x $PATH/rxfetch
     local motd="#!$SHELL\nbash rxfetch"
@@ -240,7 +251,7 @@ setup_rxfetch(){
 
 
 change_cursor(){
-    echo -e "\n5. Changing Cursor"
+    echo -e "\n6. Changing Cursor"
     local menu="Cursor Menu:"
     local options="
   1. Change to ${green}|${white} (bar)
@@ -271,7 +282,7 @@ change_cursor(){
 change_ui(){
     local colors="colors.properties.dark_blue"
     if ! $defaults; then 
-        echo -e "\n6. Changing Colour and Font."
+        echo -e "\n7. Changing Colour and Font."
         local ui_options="\n1. Set Dark Blue\n2. Set Light Blue"
         declare -A ui_dict
         ui_dict[1]="export colors=colors.properties.dark_blue"
