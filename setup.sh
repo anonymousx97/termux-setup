@@ -7,9 +7,15 @@ white="\033[0m"
 green="\033[1;32m"
 defaults=false
 
-start(){
+
+start() {
+    # Setup Storage Permissions 
+    ! [[ -w /sdcard && -r /sdcard ]] && termux-setup-storage
+
     clear
+
     local menu="${green}Main Menu:${white}"
+
     local options="
   1. Install Essential packages.
   2. Customize Termux.
@@ -17,29 +23,29 @@ start(){
   4. Setup Debian in Termux.
   5. Exit
 "
-    all(){
+    all() {
         defaults=true
         package_setup
         customize
     }
-    declare -A start_options
-    start_options[1]="package_setup"
-    start_options[2]="customize"
-    start_options[3]="all"
-    start_options[4]="setup_debian"
-    start_options[5]="exit_"
+
+    export start_options=( 
+        [1]="package_setup"
+        [2]="customize"
+        [3]="all"
+        [4]="setup_debian"
+        [5]="exit_"
+    )
+
     ask "${options}" "${menu}" "start_options"
-    if ! [ "$( ls /sdcard/ 2> /dev/null )" ]; then
-        termux-setup-storage
-    fi
 }
 
 
-
-customize(){
+customize() {
     clear
     local menu="${green}Customisation Menu:${white}"
-    customize_all(){
+
+    customize_all() {
         echo -e "${green}Customising All.${white}"
         defaults=true
         setup_aria2
@@ -52,21 +58,23 @@ customize(){
         clear
         rxfetch
     }
-    if $defaults ; then
-        customize_all
-    else
-        declare -A option_dict
-        option_dict[1]="setup_apm"
-        option_dict[2]="setup_aria2"
-        option_dict[3]="setup_ytdlp"
-        option_dict[4]="setup_prettify"
-        option_dict[5]="setup_rxfetch"
-        option_dict[6]="change_cursor"
-        option_dict[7]="change_ui"
-        option_dict[8]="customize_all"
-        option_dict[9]="start"
-        option_dict[10]="exit_"
-        local options="
+
+    [ $defaults ] && customize_all && return 0
+
+    export option_dict=(
+            [1]="setup_apm"
+            [2]="setup_aria2"
+            [3]="setup_ytdlp"
+            [4]="setup_prettify"
+            [5]="setup_rxfetch"
+            [6]="change_cursor"
+            [7]="change_ui"
+            [8]="customize_all"
+            [9]="start"
+            [10]="exit_"
+        )
+
+    local options="
   1. Setup Android Package Manager by Ryuk.
   2. Setup Aria2 Shortcut.
   3. Enable Downloading Magnets or YT-DLP supported links by sharing to termux.
@@ -78,37 +86,46 @@ customize(){
   9. Go back to previous menu.
   10. Exit
 "
-        ask "${options}" "${menu}" "option_dict"
-    fi
+
+    ask "${options}" "${menu}" "option_dict"
+
 }
 
 
-ask(){
+ask() {
     local header="What do you want to do?"
     local option_text="$1"
     local menu="$2"
     local dict_name=$3
+
     echo -e "${menu}\n${header}${option_text}"
-    while true;do
-        read -p "> " choice
-        if [ -z $choice ]; then
+
+    while true; do
+
+        read -r -p "> " choice
+
+        if [ -z "${choice}" ]; then
             clear
             echo -e "${menu}\n${header}${red}\n Choose an Option.${white}${option_text}"
+
         elif [[ -v ${dict_name}[$choice] ]]; then
             eval "\${${dict_name}[$choice]}"
-            break 
+            break
+
         else
             clear
             echo -e "${menu}\n${header}${red}\n Invalid Input: ${white}${choice}${option_text}"
         fi
+
     done
 }
 
 
-package_setup(){
+package_setup() {
     # Update Termux Package Repository
     termux-change-repo
-    yes|pkg upgrade
+
+    yes | pkg upgrade
     apt update -y && apt upgrade -y
 
     # Install necessary packages
@@ -136,7 +153,7 @@ package_setup(){
 }
 
 
-setup_debian(){
+setup_debian() {
     apt update
     apt install -y root-repo x11-repo
     apt install -y \
@@ -146,165 +163,232 @@ setup_debian(){
         pulseaudio
 
     proot-distro install debian
+
     clear
+
     local options="
 1. Install xfce4
 2. Install KDE
 3. Exit
 "
-    declare -A wm_dict
-    wm_dict[1]="export wm=xfce4 wm_cmd=startxfce4"
-    wm_dict[2]="export wm=kde-standard wm_cmd=startplasma-x11"
-    wm_dict[3]="exit_"
+    wm=""
+    wm_cmd=""
+
+    export wm_dict=(
+        [1]="export wm=xfce4 wm_cmd=startxfce4"
+        [2]="export wm=kde-standard wm_cmd=startplasma-x11"
+        [3]="exit_"
+    )
 
     ask "${options}" "Window Manager Menu:" "wm_dict"
 
-    proot-distro login debian  --termux-home --shared-tmp -- bash -c "
-    apt update && \
-    apt install -y \
-    firefox-esr \
-    ${wm} \
-    xfce4-goodies \
-    locales \
-    fonts-noto-cjk && \
-    ln -sf /usr/share/zoneinfo/Asia/Calcutta /etc/localtime && \
-    echo en_US.UTF-8 UTF-8 >> /etc/locale.gen && \
-    locale-gen && \
-    echo 'LANG=en_US.UTF-8' > /etc/locale.conf "
+    proot-distro login debian --termux-home --shared-tmp -- bash -c "
+        apt update -y
 
-    curl -s -O --output-dir $HOME https://raw.githubusercontent.com/anonymousx97/termux-setup/main/scripts/debian.sh
-    sed -i "s/wm_start_cmd/${wm_cmd}/" $HOME/debian.sh
-    echo -e '\nalias dcli="proot-distro login debian --termux-home --shared-tmp -- bash" \nalias dgui="bash debian.sh"\n' >> $HOME/.bashrc
+        apt install -y \
+            firefox-esr \
+            ${wm} \
+            xfce4-goodies \
+            locales \
+            fonts-noto-cjk 
+
+        ln -sf /usr/share/zoneinfo/Asia/Calcutta /etc/localtime
+
+        echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
+
+        locale-gen
+
+        echo 'LANG=en_US.UTF-8' > /etc/locale.conf 
+        "
+
+    curl -s -O --output-dir "${HOME}" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/scripts/debian.sh
+
+    sed -i "s/wm_start_cmd/${wm_cmd}/" "${HOME}/debian.sh"
+
     echo '
-check_distro(){
-    if [[ "$(whoami)" == "root" ]]; then
-        export HISTFILE=~/.debian_history
-    fi
-}
-check_distro
-' >> $HOME/.bashrc
+alias dcli="proot-distro login debian --termux-home --shared-tmp -- bash"
+alias dgui="bash debian.sh"
+'>> "${HOME}/.bashrc"
+
+    echo '[[ "$(whoami)" == "root" ]] && export HISTFILE=~/.debian_history' >> "${HOME}/.bashrc"
+
     echo "Done."
+
     echo -e "You can now use '${green}dcli${white}' for debian cli and '${green}dgui${white}' for GUI (Termux x11 app required)."
+
 }
 
 
-setup_apm(){
+setup_apm() {
     echo -e "\n1. Downloading Android Package Manager By Ryuk."
-    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/apm
-    chmod u+x $PATH/apm
+
+    curl -s -O --output-dir "${PATH}" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/apm
+
+    chmod +x "${PATH}/apm"
+
     echo -e "${green}Done.${white} use 'apm' to call it."
 }
 
 
-setup_aria2(){
+setup_aria2() {
     echo -e "\n2. Downloading Aria2 shortcut"
-    if ! [ -f $PATH/arc ] || $defaults ; then
-        curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
-        chmod u+x $PATH/arc
-        echo -e "${green}Done.${white}"
-    else
-        echo -e "${red}A script with the name 'arc' exists in ${PATH}${white}"
-    fi
+
+    curl -s -O --output-dir "${PATH}" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
+
+    chmod +x "${PATH}/arc"
+
+    echo -e "${green}Done.${white}"
 }
 
 
-setup_ytdlp(){
+setup_ytdlp() {
     echo -e "\n3. Downloading files and Setting Up Magent & YT-DLP link share Trigger."
-    mkdir -p $HOME/bin
-    curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/termux-url-opener
+
+    mkdir -p "${HOME}/bin"
+
+    curl -s -O --output-dir "${HOME}/bin" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/termux-url-opener
+
     echo -e "${green}Done.${white}"
 }
 
-setup_prettify(){
-    echo -e "\n4. Downloading and Setting up Prettify script." 
-    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/prettify
-    chmod u+x $PATH/prettify
+
+setup_prettify() {
+    echo -e "\n4. Downloading and Setting up Prettify script."
+
+    curl -s -O --output-dir "${PATH}" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/prettify
+
+    chmod +x "${PATH}/prettify"
+
     echo -e "${green}Done.${white}"
 }
 
-setup_rxfetch(){
+
+setup_rxfetch() {
     echo -e "\n5. Downloading and Setting up Rxfetch"
-    curl -s -O --output-dir $PATH https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/rxfetch
-    chmod u+x $PATH/rxfetch
+
+    curl -s -O --output-dir "${PATH}" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/rxfetch
+
+    chmod +x "${PATH}/rxfetch"
+
     local motd="#!$SHELL\nbash rxfetch"
 
-    if [ -f ~/.termux/motd.sh ] && ! $defaults ; then
+    if [ -f ~/.termux/motd.sh ] && ! $defaults; then
         echo -e "${red}A custom start script exists in the path ${HOME}/.termux/motd.sh${white}"
         echo -e "  Enter 1 to overwrite the current file.\n  Press Enter to skip."
-        read -p "> " prompt_
-        if ! [ $prompt_ ] ||  ! [ $prompt_ == 1 ] ; then
+
+        read -r -p "> " prompt
+
+        if [[ ! "${prompt}" || ! "${prompt}" == 1 ]]; then
             echo -e "${green}Skipping motd modification.${white}"
+
         else
             echo -e "${red}Overwriting motd.${white}"
-            echo -e $motd > ~/.termux/motd.sh
+            echo -e "${motd}" > ~/.termux/motd.sh
         fi
+
     else
-        echo -e $motd > ~/.termux/motd.sh
+        echo -e "${motd}" > ~/.termux/motd.sh
     fi
+
     echo -e "${green}Done.${white}"
 }
 
 
-change_cursor(){
+change_cursor() {
     echo -e "\n6. Changing Cursor"
-    local menu="Cursor Menu:"
-    local options="
+
+    if ! $defaults; then
+        clear
+
+        local menu="Cursor Menu:"
+
+        local options="
   1. Change to ${green}|${white} (bar)
   2. Change to ${green}_${white} (underscore)
   3. Change to Default Block style.
   4. Exit
 "
-    if ! $defaults ; then
-        clear
-        declare -A cursor_dict
-        cursor_dict[1]="eval printf '\e[6 q' && export style=bar"
-        cursor_dict[2]="eval printf '\e[4 q' && export style=underline"
-        cursor_dict[3]="eval printf '\e[1 q' && export style=block"
-        cursor_dict[4]="exit_"
+        export cursor_dict=(
+            [1]="eval printf '\e[6 q' && export style=bar"
+            [2]="eval printf '\e[4 q' && export style=underline"
+            [3]="eval printf '\e[1 q' && export style=block"
+            [4]="exit_"
+        )
+
         ask "${options}" "${menu}" "cursor_dict"
+
     else
         printf '\e[6 q'
         style=bar
     fi
-    # Set the style in termux properties 
-    sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" $HOME/.termux/termux.properties
+
+    # Set the style in termux properties
+    sed -i "s/.*terminal-cursor-style.*/terminal-cursor-style = ${style}/" "${HOME}/.termux/termux.properties"
+
     # Change Blink Rate
-    sed -i "s/.*terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" $HOME/.termux/termux.properties
-   echo -e "${green}Done.${white}"
-}
+    sed -i "s/.*terminal-cursor-blink-rate.*/terminal-cursor-blink-rate = 600/" "${HOME}/.termux/termux.properties"
 
-
-change_ui(){
-    local colors="colors.properties.dark_blue"
-    if ! $defaults; then 
-        echo -e "\n7. Changing Colour and Font."
-        local ui_options="\n1. Set Dark Blue\n2. Set Light Blue"
-        declare -A ui_dict
-        ui_dict[1]="export colors=colors.properties.dark_blue"
-        ui_dict[2]="export colors=colors.properties.light_blue"
-        clear
-        ask "${ui_options}" "${green}UI Menu${white}" "ui_dict"
-    fi
-    curl -s -o $HOME/.termux/colors.properties https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/"${colors}"
-    wget -q -O $HOME/.termux/font.ttf https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/MesloLGS_NF_Bold.ttf
-    echo -e "\n${green}Applying Changes.${white}"
-    termux-reload-settings
     echo -e "${green}Done.${white}"
 }
 
 
-exit_(){
+change_ui() {
+
+    local colors="colors.properties.dark_blue"
+
+    if ! $defaults; then
+        echo -e "\n7. Changing Colour and Font."
+
+        local ui_options="\n1. Set Dark Blue\n2. Set Light Blue"
+
+        export ui_dict=(
+            [1]="export colors=colors.properties.dark_blue"
+            [2]="export colors=colors.properties.light_blue"
+        )
+
+        clear
+        ask "${ui_options}" "${green}UI Menu${white}" "ui_dict"
+    fi
+
+    curl -s -o "${HOME}/.termux/colors.properties" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/"${colors}"
+
+    wget -q -O "${HOME}/.termux/font.ttf" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/MesloLGS_NF_Bold.ttf
+
+    echo -e "\n${green}Applying Changes.${white}"
+
+    termux-reload-settings
+
+    echo -e "${green}Done.${white}"
+}
+
+
+exit_() {
     echo -e "${green}Exiting...${white}"
     exit
 }
 
-save_setup_sh(){
-    if ! [ -f $PATH/setup-termux ]; then
-        echo -e "\nSaving setup.sh for future use."
-        echo -e '#!/bin/bash\nbash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"' > $PATH/setup-termux
-        chmod u+x $PATH/setup-termux
-        echo -e "${green}Done\n${white}You can now use ${green}'setup-termux'${white} to get back to this menu."
-    fi
+
+save_setup_sh() {
+    [[ -f "${PATH}/setup-termux" ]] && return 0
+
+    echo -e "\nSaving setup.sh for future use."
+
+    echo -e \
+            '#!/bin/bash\nbash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"' \
+            > "${PATH}/setup-termux"
+
+    chmod +x "${PATH}/setup-termux"
+
+    echo -e "${green}Done\n${white}You can now use ${green}'setup-termux'${white} to get back to this menu."
+
 }
 
 start
