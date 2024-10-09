@@ -5,11 +5,11 @@
 red="\033[1;31m"
 white="\033[0m"
 green="\033[1;32m"
-defaults=false
+defaults=0
 
 
 start() {
-    # Setup Storage Permissions 
+    # Setup Storage Permissions
     ! [[ -w /sdcard && -r /sdcard ]] && termux-setup-storage
 
     clear
@@ -24,12 +24,12 @@ start() {
   5. Exit
 "
     all() {
-        defaults=true
+        export defaults=1
         package_setup
         customize
     }
 
-    export start_options=( 
+    export start_options=(
         [1]="package_setup"
         [2]="customize"
         [3]="all"
@@ -47,7 +47,8 @@ customize() {
 
     customize_all() {
         echo -e "${green}Customising All.${white}"
-        defaults=true
+        export defaults=1
+        setup_apm
         setup_aria2
         setup_ytdlp
         setup_prettify
@@ -59,7 +60,7 @@ customize() {
         rxfetch
     }
 
-    [ $defaults ] && customize_all && return 0
+    [[ $defaults -eq 1 ]] && customize_all && return 0
 
     export option_dict=(
             [1]="setup_apm"
@@ -278,7 +279,7 @@ setup_rxfetch() {
 
     local motd="#!$SHELL\nbash rxfetch"
 
-    if [ -f ~/.termux/motd.sh ] && ! $defaults; then
+    if [[ -f ~/.termux/motd.sh && $defaults -eq 0 ]]; then
         echo -e "${red}A custom start script exists in the path ${HOME}/.termux/motd.sh${white}"
         echo -e "  Enter 1 to overwrite the current file.\n  Press Enter to skip."
 
@@ -303,7 +304,7 @@ setup_rxfetch() {
 change_cursor() {
     echo -e "\n6. Changing Cursor"
 
-    if ! $defaults; then
+    if [[ $defaults -eq 0 ]]; then
         clear
 
         local menu="Cursor Menu:"
@@ -339,11 +340,11 @@ change_cursor() {
 
 
 change_ui() {
+    echo -e "\n7. Changing Colour and Font."
 
     local colors="colors.properties.dark_blue"
 
-    if ! $defaults; then
-        echo -e "\n7. Changing Colour and Font."
+    if [[ $defaults -eq 0 ]]; then
 
         local ui_options="\n1. Set Dark Blue\n2. Set Light Blue"
 
