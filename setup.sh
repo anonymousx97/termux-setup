@@ -69,8 +69,7 @@ customize(){
         local options="
   1. Setup Android Package Manager by Ryuk.
   2. Setup Aria2 Shortcut.
-  3. Enable Downloading Audio or Video
-     by sharing YT-DLP supported links to termux.
+  3. Enable Downloading Magnets or YT-DLP supported links by sharing to termux.
   4. Setup 'prettify' Bunch of py formatting tools.
   5. Setup Rxfetch.
   6. Change Cursor Style.
@@ -110,8 +109,7 @@ package_setup(){
     # Update Termux Package Repository
     termux-change-repo
     yes|pkg upgrade
-    apt update -y 
-    apt upgrade -y
+    apt update -y && apt upgrade -y
 
     # Install necessary packages
     apt install -y \
@@ -123,11 +121,9 @@ package_setup(){
         openssh \
         python \
         python-pip \
-        python-pillow \
-        sshpass \
         tmux \
         tsu \
-        wget \
+        wget
 
     # Update and Install pip packages
     pip install -U \
@@ -136,7 +132,6 @@ package_setup(){
         yt-dlp \
         black \
         isort \
-        autopep8 \
         autoflake
 }
 
@@ -145,10 +140,10 @@ setup_debian(){
     apt update
     apt install -y root-repo x11-repo
     apt install -y \
-    proot \
-    proot-distro \
-    termux-x11-nightly \
-    pulseaudio 
+        proot \
+        proot-distro \
+        termux-x11-nightly \
+        pulseaudio
 
     proot-distro install debian
     clear
@@ -214,7 +209,7 @@ setup_aria2(){
 
 
 setup_ytdlp(){
-    echo -e "\n3. Downloading files and Setting Up YT-DLP link share Trigger."
+    echo -e "\n3. Downloading files and Setting Up Magent & YT-DLP link share Trigger."
     mkdir -p $HOME/bin
     curl -s -O --output-dir $HOME/bin https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/termux-url-opener
     echo -e "${green}Done.${white}"
