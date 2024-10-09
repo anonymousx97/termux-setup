@@ -1,14 +1,19 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-if [ -z "$1" ];then
-    echo "Give a file or path to files."
-    exit
-elif ! [ -f "$1" ] && ! [ -d "$1" ]; then
-    echo "No such file or directory."
-    exit
+function exit_with_error(){
+    echo "$1" >&2
+    exit 1
+}
+
+
+if [[ -z "$1" ]];then
+    exit_with_error "Give a file or path to files."
+
+elif [[ ! -f "$1" && ! -d "$1" ]]; then
+    exit_with_error "No such file or directory."
 fi
 
-autopep8 --verbose --in-place --recursive --aggressive --aggressive --ignore=W605 "$1"
+
+isort --honor-noqa --reverse-relative --skip-glob "**__init__.py" "$1"
+black "$1"
 autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports "$1"
-isort --honor-noqa "$1"
-black -C "$1"
