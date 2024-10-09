@@ -90,20 +90,20 @@ function getMemoryUsage() {
 
 
 function getDiskUsage() {
-  mapfile _STORAGE_INFO <<< "$(df -h | grep '/storage/emulated')"
+  read -r -a _STORAGE_INFO <<< "$(df -h | grep '/storage/emulated')"
 
   # Thanks Octavia OS for breaking mounts ;_;
   if [[ ${#_STORAGE_INFO[@]} -eq 0 ]]; then
     for _su in /sbin/su /system/sbin/su /system/bin/su /system/xbin/su /su/bin/su /magisk/.core/bin/su
     do
         if [ -x $_su ]; then
-            mapfile _STORAGE_INFO <<< "$($_su -c "df -h | grep '/data/media'")"
+            read -r -a _STORAGE_INFO <<< "$($_su -c "df -h | grep '/data/media'")"
             break
         fi
     done
   fi
 
-  if [[ ${#_STORAGE_INFO[@]} -eq 0 ]]; then
+  if [[ "${#_STORAGE_INFO[@]}" -eq 0 ]]; then
     return
   fi
 
