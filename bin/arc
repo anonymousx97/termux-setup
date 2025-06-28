@@ -1,16 +1,19 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-read -r -p 'Link or Magnet
-> ' x
+# Auto Resume Downloading Last URL
+if [[ "${1}" == "-r" ]]; then
+    url=$(tail -n 2 "${HOME}/.arc_history")
 
-echo -e "${x}\n" >> /data/data/com.termux/files/home/.arc_history
+else
+    echo -e 'Link or Magnet'
+    read -r -p "> " url
 
-echo
+    # Save the URL
+    echo -e "${url}\n" >> "${HOME}/.arc_history"
+fi
 
-aria2c \
-    -d /sdcard/Download \
-    --console-log-level=warn \
-    --summary-interval=0 \
-    --seed-time=0 \
-    --file-allocation=none \
-    "${x}"
+[[ "${1}" == "-d" ]] && dir="${2}" || dir="/sdcard/Download"
+
+
+# Start Aria2
+aria2c -d "${dir}" "${url}"

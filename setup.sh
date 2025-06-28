@@ -234,12 +234,19 @@ setup_apm() {
 
 
 setup_aria2() {
-    echo -e "\n2. Downloading Aria2 shortcut"
+    echo -e "\n2. Downloading Aria2 shortcut and config."
 
     curl -s -O --output-dir "${PATH}" \
         https://raw.githubusercontent.com/anonymousx97/termux-setup/main/bin/arc
 
     chmod +x "${PATH}/arc"
+
+    local conf_dir="${HOME}/.config/aria2"
+
+    mkdir -p "$conf_dir"
+
+    curl -s -O --output-dir "$conf_dir" \
+        https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.config/aria2/aria2.conf
 
     echo -e "${green}Done.${white}"
 }
