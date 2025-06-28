@@ -54,7 +54,7 @@ class Keys:
 class Manager:
 
     def __init__(self):
-        os.system("printf '\e[?25l'")
+        os.system(r"printf '\e[?25l'")
 
         self.search_term: str = ""
         self.selected_package: str = ""
@@ -221,7 +221,7 @@ class Manager:
         sys.stdout.write("\r\033[K")
 
         # Re-enable Cursor
-        os.system("printf '\e[?25h'")
+        os.system(r"printf '\e[?25h'")
 
         sys.exit(exit_code)
 
