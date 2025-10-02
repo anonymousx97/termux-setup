@@ -1,8 +1,4 @@
-#!/bin/bash
-
-function arc_dl(){
-    arc <<< "${1}"
-}
+#!/usr/bin/env bash
 
 
 function yt_dl(){
@@ -11,34 +7,34 @@ function yt_dl(){
     while true; do
         read -r -p "> " x
 
-        if [[ -z "${x}" ]]; then
-            echo -e "Choose an option"
+        case "$x" in
+            "") echo -e "Choose an option";;
 
-        elif [[ "${x}" -eq 1 ]];then
-            echo -e "Downloading Audio"
-            yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -x --audio-format opus --audio-quality 0 --embed-thumbnail "$1"
-            break
+            1)
+                echo -e "Downloading Audio"
+                yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -x --audio-format opus --audio-quality 0 --embed-thumbnail "$1"
+                break;;
 
-        elif [[ "${x}" -eq 2 ]]; then
-            yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -f "bv+ba/b" "$1"
-            break
+            2)
+                yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -f "bv+ba/b" "$1"
+                break;;
 
-        elif [[ "${x}" -eq 3 ]]; then
-            echo -e "yt-dlp args:"
-            read -r -p "> " args
-            yt-dlp "${args} ${1}"
-            break
+            3)
+                echo -e "yt-dlp args:"
+                read -rp "> " -a args
+                yt-dlp "${args[@]}" "$1"
+                break;;
 
-        else
-            echo -e "Invalid Input: ${x}"
-        fi
+            *) echo -e "Invalid Input: ${x}";;
+
+        esac
     done
     sleep 5
 }
 
 
-if grep -qE "^magnet:" <<< "${1}"; then
-    arc_dl "${1}"
+if grep -qE "^magnet:" <<< "$1"; then
+    arc "$1"
 else
-    yt_dl "${1}"
+    yt_dl "$1"
 fi
