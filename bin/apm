@@ -1,267 +1,432 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# By Ryuk [anonymousx97]
 
+import datetime
+import inspect
 import os
+import shutil
 import subprocess
 import sys
 import termios
+import time
 import tty
+from logging import DEBUG, INFO
 
-ARG_MAP = {
-    "-d": "disable",
-    "-e": "enable",
-    "-u": "uninstall",
-}
-
-RAW_PACKAGES_LIST: list[str] = []
-PACKAGE_LIST: list[str] = []
+LOG_LEVEL = DEBUG if "-d" in sys.argv else INFO
 
 
 class Colors:
-    CYAN = "\033[96m"
-    RED = "\033[91m"
-    ENDC = "\033[0m"
+    CYAN = "\x1b[1;36m"
+    RED = "\x1b[1;38;5;162m"
+    GREEN = "\x1b[1;32m"
+    WHITE = "\x1b[38;2;225;225;225m"
+    RESET = "\x1b[0m"
 
 
-# Check for valid args. Exit if incorrect.
-try:
-    assert ARG_MAP.get(sys.argv[1])
-    ACTION = ARG_MAP[sys.argv[1]]
-
-except (AssertionError, IndexError):
-    print(
-        f"""{Colors.RED}Invalid Command!{Colors.ENDC}
-
-Usage:
-  -e     : Enable the app
-  -d     : Disable the app
-  -u     : Uninstall the app
-"""
-    )
-    sys.exit(1)
-
-
-class Keys:
-    KEY = "\x1b"
+class Buttons:
+    ESCAPE_CHAR = "\x1b"
     UP = "\x1b[A"
     DOWN = "\x1b[B"
+    LEFT = "\x1b[D"
     BACKSPACE = "\x7f"
     CTRL_C = "\x03"
     CTRL_Z = "\x1a"
 
-    ALLOWED_KEYS = (KEY, UP, DOWN, BACKSPACE, CTRL_C, CTRL_Z)
+
+def write_log(text, levelno):
+    if levelno < LOG_LEVEL:
+        return
+    with open(f"{os.getenv('HOME')}/.apm_log.txt", "w+") as f:
+        f.write(
+            f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+            f"    |    {inspect.stack()[1].function}:"
+            f"\n  {text}\n\n"
+        )
 
 
-class Manager:
-
+class Terminal:
     def __init__(self):
-        os.system(r"printf '\e[?25l'")
+        self._stdin = sys.stdin
+        self._stdout = sys.stdout
+        # Save term settings before change it's settings.
+        self._old_terminal_settings = termios.tcgetattr(self._stdin.fileno())
+        # Save length of last displayed text
+        self._last_displayed_line_count = 0
 
-        self.search_term: str = ""
-        self.selected_package: str = ""
-        self.selected_index: int = 0
-
-        # Save Old Terminal Settings to restore on exit.
-        self.stdin_file_descriptor = sys.stdin.fileno()
-        self.old_terminal_settings = termios.tcgetattr(self.stdin_file_descriptor)
-
-        # Set Terminal to Live Input Mode
-        tty.setcbreak(self.stdin_file_descriptor)
-
-        # Setup Display Area
-        self.reset_output_area(count=5, indent=True)
-
-    def clear_package_data(self) -> None:
-        self.search_term: str = ""
-        self.selected_package: str = ""
-        self.selected_index: int = 0
-
-    def handle_user_input(self) -> None:
-        """Start Waiting for Input"""
-
-        while 1:
-
-            previous_menu_length: int = self.show_package_options()
-            self.reset_output_area(previous_menu_length)
-
-            user_input = sys.stdin.read(1)
-
-            match user_input:
-                # Extra Precautions for Live Read mode
-                case (Keys.CTRL_C, Keys.CTRL_Z):
-                    self.cleanup_and_exit(0)
-
-                # No Spaces
-                case " ":
-                    continue
-
-                # If the up/down key was pressed, read it's value
-                case Keys.KEY:
-                    user_input += sys.stdin.read(2)
-
-                    match user_input:
-                        case Keys.UP:
-                            # Decrease Index by one to move up in menu
-                            self.selected_index -= 1
-
-                        case Keys.DOWN:
-                            # Increase Index by one to move down in menu
-                            self.selected_index += 1
-
-                # Clear One Letter
-                case Keys.BACKSPACE:
-                    self.search_term = self.search_term[:-1]
-
-                    # If search term is empty, delete stored data
-                    if not self.search_term:
-                        self.clear_package_data()
-
-                # Perform the arg task on enter
-                case "\n":
-                    if self.selected_package:
-                        sys.stdout.flush()
-                        self.apply_package_action()
-                        self.clear_package_data()
-                        self.reset_output_area(count=5, indent=True)
-
-                case _:
-                    if user_input.isalnum():
-                        self.search_term += user_input
-
-    def show_input_bar(self) -> None:
-        """Show Query"""
-        # Clear Input Line and Go to the Beginning
-        sys.stdout.write("\033[K\r")
-
-        # Print Input
-        sys.stdout.write("app name: " + self.search_term)
-
-    def show_package_options(self) -> int:
-        """Show top 5 packages"""
-        sys.stdout.flush()
-
-        self.show_input_bar()
-
-        menu, menu_len = self.format_package_menu()
-
-        # Print Menu
-        sys.stdout.write(menu)
-
-        sys.stdout.flush()
-
-        return menu_len
-
-    @staticmethod
-    def highlight_selected_package(package_name: str) -> str:
+    def _enable_raw_input_mode(self):
         """
-        Highlights the selected package with color.
+        Set terminal to touch to type
+        so users don't need to press enter while interacting.
         """
-        return f"{Colors.RED}>{Colors.ENDC} {Colors.CYAN}{package_name}{Colors.ENDC}"
+        tty.setcbreak(self._stdin.fileno())
+        write_log("Terminal set to touch to type/raw mode.", DEBUG)
 
-    def format_package_menu(self) -> tuple[str, int]:
-        """
-        Builds the menu string based on the input and package list.
-        """
-        if not self.search_term:
-            self.clear_package_data()
-            return "", 0
-
-        packages = [pkg for pkg in PACKAGE_LIST if self.search_term in pkg][0:5]
-
-        if not packages:
-            self.selected_package = ""
-            return "", 0
-
-        # Check current index
-        try:
-            packages[self.selected_index]
-        except IndexError:
-            self.selected_index = 0
-
-        self.selected_package = packages[self.selected_index]
-
-        packages[self.selected_index] = self.highlight_selected_package(
-            self.selected_package
-        )
-
-        return "\n" + "\n".join(packages), len(packages)
-
-    @staticmethod
-    def reset_output_area(count: int, indent=False) -> None:
-        """Clear or Adjust Display"""
-
-        # Flush any characters on screen
-        sys.stdout.flush()
-
-        if indent:
-            # Adjust Screen if there's no space left
-            sys.stdout.write("\n" * (count + 1))
-
-        # Move Line to the end
-        sys.stdout.write("\033[E")
-
-        # Move one line up each step for each entry in menu and clear it
-        for _ in range(count + 1):
-            sys.stdout.write("\033[F\033[K")
-
-    def apply_package_action(self) -> None:
-        """Enable / Disable / Uninstall app"""
-        subprocess.call(
-            f"su -c 'pm {ACTION} --user 0 {self.selected_package}'", shell=True
-        )
-
-    def cleanup_and_exit(self, exit_code: int) -> None:
-        """Restore everything and exit"""
-
-        # Reset Terminal and Turn off Live Read mode.
+    def _restore_terminal_mode(self):
+        """Undo Live-Input and restore old settings"""
+        self.show_cursor()
+        self.reset_color()
         termios.tcsetattr(
-            self.stdin_file_descriptor, termios.TCSADRAIN, self.old_terminal_settings
+            self._stdin.fileno(), termios.TCSADRAIN, self._old_terminal_settings
         )
+        write_log("Terminal set to normal mode.", DEBUG)
 
-        # Clear any Remaining characters on screen
-        sys.stdout.write("\r\033[K")
+    def send_csi(self, code: str):
+        self._stdout.write(f"\x1b[{code}")
+        self._stdout.flush()
 
-        # Re-enable Cursor
-        os.system(r"printf '\e[?25h'")
+    def save_cursor_position(self):
+        self.send_csi("s")
+        write_log("Saving cursor position.", DEBUG)
 
+    def reset_color(self):
+        self.send_csi("0m")
+        write_log("Resetting colors.", DEBUG)
+
+    def hide_cursor(self):
+        self.send_csi("?25l")
+        write_log("Cursor hidden.", DEBUG)
+
+    def show_cursor(self):
+        self.send_csi("?25h")
+        write_log("Cursor un-hidden.", DEBUG)
+
+    def move_cursor_up(self, n: int = 1):
+        self.send_csi(f"{n}A")
+        write_log(f"Cursor moved up by {n} lines", DEBUG)
+
+    def move_cursor_down(self, n: int = 1):
+        self.send_csi(f"{n}B")
+        write_log(f"Cursor moved down by {n} lines.", DEBUG)
+
+    def clear_line(self):
+        self.send_csi("2K")
+
+    def clear_lines(self, n: int = 0):
+        write_log(f"Clearing {n or self._last_displayed_line_count} lines.", DEBUG)
+        for _ in range(0, n or self._last_displayed_line_count):
+            self.move_cursor_up()
+            self.clear_line()
+        self._last_displayed_line_count = 0
+
+    def print_lines(self, lines: list[str], clear_old_lines: bool = False):
+        """
+        Write lines on terminal and save no of lines printed.
+        """
+        if clear_old_lines:
+            self.clear_lines()
+
+        write_log(f"Printing {'\n'.join(lines)}.", DEBUG)
+
+        for line in lines:
+            self._stdout.write(line + "\n")
+            self._stdout.flush()
+        self._last_displayed_line_count = len(lines)
+
+    def read_input(self, length: int = 1):
+        _input = ""
+        while len(_input) < length:
+            _input += self._stdin.read(1)
+        return _input
+
+
+class PackageManager(Terminal):
+    def __init__(self):
+        super().__init__()
+        # User to perform action for.
+        self.user = "0"
+        # su -c OR adb shell
+        self.executable_args = []
+        # Operation Mode [disable | enable | uninstall]
+        self.operation_mode = None
+        # Continuously keep performing operation selected in the start.
+        self._continuous_operation_mode = "-c" in sys.argv
+
+        # Full package list
+        self._packages: list[str] = []
+        write_log("Package Manager Initialised.", INFO)
+
+    def __enter__(self) -> "PackageManager":
+        self._post_init_setup()
+        write_log("__enter__ done", DEBUG)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        write_log(f"{exc_type} {exc_val}", DEBUG)
+
+        self.clear_lines()
+        exit_code = 0
+        if exc_type and not issubclass(exc_type, KeyboardInterrupt | SystemExit):
+            exit_code = 1
+            write_log(text=f"{exc_type} {exc_val}", levelno=INFO)
+
+        if issubclass(exc_type, SystemExit):
+            sys.exit(exit_code)
+
+        self._cleanup_and_exit(exit_code)
+
+    def _post_init_setup(self):
+        # Check for su/adb and exit if it's not available
+        if "--adb" in sys.argv:
+            self._check_adb()
+        else:
+            self._check_super_user_access()
+
+        self._set_user()
+        # Save Cursor Position
+        self.save_cursor_position()
+        # Enable Live input
+        self._enable_raw_input_mode()
+        # Remove Cursor
+        self.hide_cursor()
+
+        write_log(text="Post-Init setup done.", levelno=INFO)
+
+    def _cleanup_and_exit(self, exit_code):
+        self._restore_terminal_mode()
+        write_log(f"Exiting with code: {exit_code}", INFO)
         sys.exit(exit_code)
 
+    def _exit_with_err(self, err: str):
+        write_log(f"Exiting with err: {err}", DEBUG)
+        print(f"{Colors.RED}{err}{Colors.RESET}")
+        self._cleanup_and_exit(1)
 
-def check_su() -> None:
-    # Look For SU binary to use.
-    su_paths = [
-        "/sbin/su",
-        "/system/sbin/su",
-        "/system/bin/su",
-        "/system/xbin/su",
-        "/su/bin/su",
-        "/magisk/.core/bin/su",
-    ]
-    for path in su_paths:
-        if os.path.isfile(path):
+    def _check_super_user_access(self) -> None:
+        """
+        Go through known SU Binary locations and check for executable access
+        Set the binary as default or exit with error.
+        """
+        su_paths = [
+            "/sbin/su",
+            "/system/sbin/su",
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/su/bin/su",
+            "/magisk/.core/bin/su",
+        ]
+        for path in su_paths:
+            if os.access(path, os.X_OK):
+                self.executable_args.extend([path, "-c"])
+                write_log(text=f"Found su binary in path: {path}", levelno=INFO)
+                break
+        else:
+            write_log(text="SU binary not found. Exiting.", levelno=INFO)
+            self._exit_with_err("SU Binary not found\nAre you Rooted?")
+
+    def _check_adb(self) -> None:
+        adb_binary = shutil.which("adb")
+
+        if not adb_binary:
+            self._exit_with_err("adb not found.")
+        print(
+            f"adb server running in bg kill it with {Colors.GREEN}'pkill -efn adb'{Colors.RESET}"
+        )
+        devices = self._run_shell_cmd([adb_binary, "get-state"])
+        if "error" in devices:
+            self._exit_with_err("No devices connected to adb")
+        self.executable_args = [adb_binary, "shell"]
+
+    def _set_user(self):
+        if "--user" not in sys.argv:
             return
-    else:
-        print("SU Binary not found\nAre you Rooted?")
-        sys.exit(1)
+        user_arg_index = sys.argv.index("--user")
+        try:
+            self.user = sys.argv[user_arg_index + 1]
+            if not self.user.isdigit():
+                self._exit_with_err("--user requires an integer argument")
+        except IndexError:
+            self._exit_with_err("--user requires an integer argument")
+
+    def create_operation_command(self, package_name: str) -> list[str]:
+        return [
+            *self.executable_args,
+            "pm",
+            self.operation_mode,
+            f"--user {self.user}",
+            package_name,
+        ]
+
+    @staticmethod
+    def _run_shell_cmd(args: list):
+        write_log(text=f"Running {' '.join(args)}", levelno=INFO)
+        return subprocess.run(
+            args,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        ).stdout.strip()
+
+    def _cache_packages(self, disabled: bool = False):
+        args = [*self.executable_args, "pm", "list", "packages"]
+        if disabled:
+            args.append("-d")
+        args.extend(["--user", self.user])
+        raw_packages = self._run_shell_cmd(args)
+        self._packages = [pkg.removeprefix("package:") for pkg in raw_packages.split()]
+
+    def search_cache(self, search_term: str, size: int = 5):
+        matches = []
+        for pkg in self._packages:
+            if search_term.lower() in pkg:
+                matches.append(pkg)
+            if len(matches) == size:
+                break
+        return matches
+
+    def _prompt_for_operation_mode(self):
+        """
+        Show main menu and set operation mode.
+        """
+        opts = {"1": "enable", "2": "disable", "3": "uninstall", "4": "exit"}
+        menu = [
+            "What would you like to do?",
+            *[
+                f"{Colors.GREEN}{k}{Colors.WHITE}. {v.capitalize()}"
+                for k, v in opts.items()
+            ],
+        ]
+        while True:
+            self.print_lines(menu, clear_old_lines=True)
+            choice = self.read_input()
+            if choice in opts.keys():
+                self.clear_lines()
+                break
+
+        if choice == "4":
+            write_log(text="Exit chosen in main menu.", levelno=INFO)
+            self._cleanup_and_exit(0)
+
+        self.operation_mode = opts[choice]
+        # adb compatibility
+        # just pm disable doesn't work it needs disable-user
+        if self.operation_mode == "disable":
+            self.operation_mode += "-user"
+
+        write_log(text=f"Set {self.operation_mode} as operation mode.", levelno=INFO)
+
+    # fmt: off
+    def _package_selection(self):
+        search_term = ""
+        pkg_index = 0
+        selected_package = None
+        while True:
+            packages = self.search_cache(search_term)
+
+            if packages:
+                try:
+                    # noinspection PyStatementEffect
+                    packages[pkg_index]
+                    write_log(text=f"Selected {selected_package}", levelno=DEBUG)
+                except IndexError:
+                    write_log(text=f"IndexError on index {pkg_index}.", levelno=DEBUG)
+                    pkg_index = 0
+
+                selected_package = packages[pkg_index]
+                packages[pkg_index] = (
+                    f"{Colors.RED}>{Colors.WHITE} "
+                    f"{Colors.CYAN}{packages[pkg_index]}{Colors.WHITE}"
+                )
+
+            self.print_lines(
+                lines=[
+                    f"{Colors.RED}app name:{Colors.WHITE} {search_term}",
+                    *packages,
+                    "-" * 32,
+                    f"Press {Colors.RED}<{Colors.WHITE} to go back "
+                    f"and {Colors.RED}!{Colors.WHITE} to quit",
+                ],
+                clear_old_lines=True,
+            )
+
+            stdin = self.read_input()
+
+            match stdin:
+                case Buttons.CTRL_C | Buttons.CTRL_Z:
+                    write_log(text="Keyboard Interrupt received", levelno=INFO)
+                    self._cleanup_and_exit(0)
+
+                case " ":
+                    write_log(text="Ignoring Spaces", levelno=DEBUG)
+                    continue
+
+                case "!":
+                    write_log(text="Exit symbol ! pressed.", levelno=DEBUG)
+                    self._cleanup_and_exit(0)
+
+                case "<":
+                    write_log(text="Main menu symbol pressed.", levelno=DEBUG)
+                    self.clear_lines()
+                    return 1
+
+                case Buttons.ESCAPE_CHAR:
+                    button = stdin + self.read_input(2)
+                    write_log(text=f"{button} pressed.", levelno=DEBUG)
+
+                    match button:
+                        case Buttons.UP:
+                            pkg_index -= 1
+                        case Buttons.DOWN:
+                            pkg_index += 1
+                        case Buttons.LEFT:
+                            write_log("Main menu symbol pressed.", DEBUG)
+                            self.clear_lines()
+                            return 1
+
+                case Buttons.BACKSPACE:
+                    search_term = search_term[:-1]
+                    write_log(text=f"Backspace: {search_term}.", levelno=DEBUG)
+
+                case "\n":
+                    if packages:
+                        write_log(f"Enter Pressed on {selected_package}", INFO)
+                        self._run_shell_cmd(
+                            self.create_operation_command(selected_package)
+                        )
+                        self.print_lines(
+                            lines=[
+                                f"{Colors.RED}{self.operation_mode.capitalize()}{Colors.WHITE}: "
+                                f"{selected_package}"
+                            ],
+                            clear_old_lines=True,
+                        )
+                        time.sleep(1)
+                        return 0
+                    write_log(text="Enter pressed on empty packages.", levelno=DEBUG)
+
+                case _ if stdin.isalnum():
+                    search_term += stdin
+                    write_log(text=f"Search term: {search_term}", levelno=DEBUG)
+
+                case _:
+                    write_log(text=f"Ignoring {stdin} input.", levelno=DEBUG)
+    # fmt: on
+
+    def run(self):
+        ret_code = 0
+        is_first_run = True
+        while 1:
+            if any((is_first_run, ret_code == 1, not self._continuous_operation_mode)):
+                self._prompt_for_operation_mode()
+            self._cache_packages(self.operation_mode == "enable")
+            ret_code = self._package_selection()
+            is_first_run = False
 
 
 if __name__ == "__main__":
-    check_su()
-    # Get List of Installed packages using root
-    RAW_PACKAGES_LIST = (
-        subprocess.check_output("su -c pm list packages", shell=True)
-        .decode("utf-8")
-        .split()
-    )
+    if "-h" in sys.argv:
+        print(
+            f"""{Colors.RED}Interactive package manager by Ryuk.{Colors.WHITE}
 
-    # Strip package names
-    PACKAGE_LIST = [pkg.removeprefix("package:") for pkg in RAW_PACKAGES_LIST]
+Usage: apm [options...] [--adb] [-c] [--user 0]
+  {Colors.GREEN}-h{Colors.RESET}:         show help
+  {Colors.GREEN}-d{Colors.RESET}:         enable debug logging 
+  {Colors.GREEN}-c{Colors.RESET}:         continuous mode (doesn't return to main menu after performing action.)
+    
+  {Colors.GREEN}--adb{Colors.RESET}:      uses adb instead of root.
+  {Colors.GREEN}--user{Colors.RESET}:     user to perform action for. (defaults to 0)
+"""
+        )
+        sys.exit(0)
 
-    exit_code = 0
-    manager = Manager()
-    try:
-        manager.handle_user_input()
-    except Exception as e:
-        exit_code = 1
-        print(e)
-    finally:
-        manager.cleanup_and_exit(exit_code=exit_code)
+    with PackageManager() as pm:
+        pm.run()
