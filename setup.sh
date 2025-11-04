@@ -335,7 +335,7 @@ setup_rxfetch() {
 }
 
 apply_cursor_change() {
-	local choice="${1:-1}"
+	local choice="${1:-0}"
 	local style
 	local style_ansi
 
