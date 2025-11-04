@@ -21,38 +21,36 @@ https://github.com/anonymousx97/termux-setup/assets/88324835/a1067ff9-9c31-40d8-
 </details>
 
 ### Installation
-Download Termux:
-[**GitHub**](https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_universal.apk) | [**F-Droid**](https://f-droid.org/repo/com.termux_118.apk)  
+Download Termux: [**GitHub**](https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_universal.apk)
 
-Run:  
+Run:
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"
   ```
 ### Credits 
 * By: Ryuk [ [TG](https://t.me/anonymousx97) | [GitHub](https://github.com/anonymousx97) ]
-* [mayTrmux](https://github.com/mayTermux) for original _color.properties & rxfetch_
+* [mayTrmux](https://github.com/mayTermux) for _color.properties_
 * Packages Used:
   * APT :
-
-        aria2 
-        curl 
-        ffmpeg 
-        git 
-        gh 
-        openssh 
-        python 
-        python-pip 
-        python-pillow 
-        sshpass 
-        tmux 
-        tsu 
-        wget 
+    aria2 
+    curl 
+	diff-so-fancy
+    ffmpeg 
+    git 
+    gh 
+    openssh 
+    python 
+    python-pip 
+    python-pillow
+    ruff 
+    tmux 
+    tsu 
+    wget 
+	root-repo
+	tur-repo
+	x11-repo
 
   * PIP :
-
-        yt-dlp
-        black
-        isort
-        autopep8
-        autoflake
+    yt-dlp
+	

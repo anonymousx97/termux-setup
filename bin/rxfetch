@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # By Anonymousx97
 
-
 # Colors quoted with $ to work with EOF
 magenta=$'\033[1;35m'
 green=$'\033[1;32m'
@@ -18,96 +17,113 @@ bgwhite=$'\033[1;47;37m'
 # Termux
 if [[ $HOME == "/data/data/com.termux/files/home" ]]; then
 
-  distro_string=" Android 🧡 Termux"
+	distro_string=" Android 🧡 Termux"
 
-  function getCodeName(){
-    echo "$(getprop ro.product.board)${red}@${reset}$(getprop ro.com.google.clientidbase)"
-  }
+	function getCodeName() {
+		echo "$(getprop ro.product.board)${red}@${reset}$(getprop ro.com.google.clientidbase)"
+	}
 
-  function getModel() {
-    echo "${magenta}phone${reset}  $(getprop ro.product.vendor.model)"
-  }
+	function getModel() {
+		echo "${magenta}phone${reset}  $(getprop ro.product.vendor.model)"
+	}
 
-  function getDistro() {
-    echo "${green}os${reset}     $(uname -o) $(uname -m)"
-  }
+	function getDistro() {
+		echo "${green}os${reset}     $(uname -o) $(uname -m)"
+	}
 
 else
-  # Desktop
+	# Desktop
 
-  distro_string=" Linux 🧡 Desktop "
+	distro_string=" Linux 🧡 Desktop "
 
-  function getCodeName(){
-    echo "$(grep -oP '^[Model|Hardware].*: \K.*' /proc/cpuinfo)"
-  }
+	function getCodeName() {
+		echo "$(grep -oP '^[Model|Hardware].*: \K.*' /proc/cpuinfo)"
+	}
 
-  function getModel() {
-    echo "${magenta}host${reset}   $(hostname)"
-  }
+	function getModel() {
+		echo "${magenta}host${reset}   $(hostname)"
+	}
 
-  function getDistro() {
-    echo "${green}os${reset}     $(grep -oP '^NAME="\K[^"]+' /etc/os-release)"
-  }
+	function getDistro() {
+		echo "${green}os${reset}     $(grep -oP '^NAME="\K[^"]+' /etc/os-release)"
+	}
 
 fi
 
 function getKernel() {
-  echo "${cyan}ker${reset}    $(uname -r)"
+	echo "${cyan}ker${reset}    $(uname -r)"
 }
 
 function getTotalPackages() {
-  echo "${blue}pkgs${reset}   $(apt list --installed 2>/dev/null | wc -l)"
+	echo "${blue}pkgs${reset}   $(apt list --installed 2>/dev/null | wc -l)"
 }
 
 function getShell() {
-  local shell="$(basename $SHELL)"
+	local shell="$(basename "$SHELL")"
 
-  if [[ $shell=="login" ]]; then
-    local custom_shell="/data/data/com.termux/files/home/.termux/shell"
+	if [[ $shell == "login" ]]; then
+		local custom_shell="/data/data/com.termux/files/home/.termux/shell"
 
-    if [[ -f $custom_shell && -x $custom_shell ]]; then
-      shell="$($custom_shell -c 'basename "$0"')"
-    else
-      shell="bash"
-    fi
+		if [[ -f $custom_shell && -x $custom_shell ]]; then
+			shell="$($custom_shell -c 'basename "$0"')"
+		else
+			shell="bash"
+		fi
 
-  fi
+	fi
 
-  echo "${red}sh${reset}     $shell"
+	echo "${red}sh${reset}     $shell"
 }
 
 function getUptime() {
-  echo "${yellow}up${reset}    $(uptime --pretty | sed 's/up//')"
+	echo "${yellow}up${reset}    $(uptime --pretty | sed 's/up//')"
 }
 
 function getMemoryUsage() {
-  read -r used total <<< "$(free --mega | awk '/Mem:/ {print $3, $2}')"
-  echo "${magenta}ram${reset}    ${used}MB ${red}/${reset} ${total}MB"
+	read -r used total <<<"$(free --mega | awk '/Mem:/ {print $3, $2}')"
+	echo "${magenta}ram${reset}    ${used}MB ${red}/${reset} ${total}MB"
 }
 
 function getDiskUsage() {
-  read -r size used available percent <<< "$(df -h . | awk 'NR==2 {print $2, $3, $4, $5}')"
-  local mem_color
-  awk '{if ($1+0 < 10) exit 0; else exit 1}' <<< "$available" && mem_color=$red || mem_color=$green
-  echo "${green}disk${reset}   ${used}B ${red}/${reset} ${size}B = ${mem_color}${available}B${reset} (${percent})"
+	read -r size used available percent <<<"$(df -h . | awk 'NR==2 {print $2, $3, $4, $5}')"
+	local mem_color
+	awk '{if ($1+0 < 10) exit 0; else exit 1}' <<<"$available" && mem_color=$red || mem_color=$green
+	echo "${green}disk${reset}   ${used}B ${red}/${reset} ${size}B = ${mem_color}${available}B${reset} (${percent})"
 }
 
-cat << EOF
+print_rxfetch() {
+	cat <<-EOF
 
 
-  ┏━━━━━━━━━━━━━━━━━━━━━━━┓
-  ┃  ${magenta}r${green}x${cyan}f${blue}e${red}t${yellow}${cyan}c${magenta}h${reset}     ${red}${reset}  ${yellow}${reset}  ${cyan}${reset}  ┃  $(getCodeName)
-  ┣━━━━━━━━━━━━━━━━━━━━━━━┫
-  ┃                       ┃  $(getModel)
-  ┃          ${white}•${black}_${white}•${reset}          ┃  $(getDistro)
-  ┃          ${black}${reset}${bgyellow}oo${reset}${black}|${reset}          ┃  $(getKernel)
-  ┃         ${black}/${reset}${bgwhite} ${reset}${black}'\'${reset}         ┃  $(getTotalPackages)
-  ┃        ${bgyellow}(${reset}${black}\_;/${reset}${bgyellow})${reset}         ┃  $(getShell)
-  ┃                       ┃  $(getUptime)
-  ┃  ${distro_string}   ┃  $(getMemoryUsage)
-  ┃                       ┃  $(getDiskUsage)
-  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${magenta}━━━${green}━━━${white}━━━${blue}━━━${red}━━━${yellow}━━━${cyan}━━━${reset}
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃  ${magenta}r${green}x${cyan}f${blue}e${red}t${yellow}${cyan}c${magenta}h${reset}     ${red}${reset}  ${yellow}${reset}  ${cyan}${reset}  ┃  $(getCodeName)
+		  ┣━━━━━━━━━━━━━━━━━━━━━━━┫
+		  ┃                       ┃  $(getModel)
+		  ┃          ${white}•${black}_${white}•${reset}          ┃  $(getDistro)
+		  ┃          ${black}${reset}${bgyellow}oo${reset}${black}|${reset}          ┃  $(getKernel)
+		  ┃         ${black}/${reset}${bgwhite} ${reset}${black}'\'${reset}         ┃  $(getTotalPackages)
+		  ┃        ${bgyellow}(${reset}${black}\_;/${reset}${bgyellow})${reset}         ┃  $(getShell)
+		  ┃                       ┃  $(getUptime)
+		  ┃  ${distro_string}   ┃  $(getMemoryUsage)
+		  ┃                       ┃  $(getDiskUsage)
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${magenta}━━━${green}━━━${white}━━━${blue}━━━${red}━━━${yellow}━━━${cyan}━━━${reset}
 
 
-EOF
+	EOF
 
+}
+
+print_stdout() {
+	cat <<-EOF
+		  $(getModel)
+		  $(getDistro)
+		  $(getKernel)
+		  $(getTotalPackages)
+		  $(getShell)
+		  $(getUptime)
+		  $(getMemoryUsage)
+		  $(getDiskUsage)
+	EOF
+}
+
+[[ "$1" =~ ^(--stdout|-s)$ ]] && print_stdout || print_rxfetch
