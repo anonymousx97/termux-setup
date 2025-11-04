@@ -1,0 +1,6 @@
+[window]
+opacity = 0.5
+
+[font]
+normal = { family = "Monospace", style = "Regular" }
+size = 22.0

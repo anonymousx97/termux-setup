@@ -1,0 +1,16 @@
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**__init__.py"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[lint]
+extend-select = ["B", "E", "F", "I", "UP", "N", "C90"]
+ignore = ["E501"]
+
+[lint.isort]
+relative-imports-order = "closest-to-furthest"
