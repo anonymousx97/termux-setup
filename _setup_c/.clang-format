@@ -1,0 +1,24 @@
+BasedOnStyle: Chromium
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 120
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+  #BreakBeforeCloseBracketFunction: true
+  #BreakBeforeCloseBracketBracedList: true
