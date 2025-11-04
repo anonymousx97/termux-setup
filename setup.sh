@@ -405,7 +405,7 @@ apply_ui_change() {
 	download "${HOME}/.termux/" "font.ttf" \
 		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/MesloLGS_NF_Bold.ttf"
 
-	print_geeen "\nApplying Changes."
+	print_green "\nApplying Changes."
 
 	termux-reload-settings
 
