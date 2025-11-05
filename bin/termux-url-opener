@@ -1,40 +1,41 @@
 #!/usr/bin/env bash
 
+function yt_dl() {
+	echo -e "1. Audio : 160kbps Opus\n2. Best Video + Best Audio (Max Resolution)\n3. Download with custom args."
 
-function yt_dl(){
-    echo -e "1. Audio : 160kbps Opus\n2. Best Video + Best Audio (Max Resolution)\n3. Download with custom args."
+	while true; do
+		read -r -p "> " x
 
-    while true; do
-        read -r -p "> " x
+		case "$x" in
+		"") echo -e "Choose an option" ;;
 
-        case "$x" in
-            "") echo -e "Choose an option";;
+		1)
+			echo -e "Downloading Audio"
+			yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -x --audio-format opus --audio-quality 0 --embed-thumbnail "$1"
+			break
+			;;
 
-            1)
-                echo -e "Downloading Audio"
-                yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -x --audio-format opus --audio-quality 0 --embed-thumbnail "$1"
-                break;;
+		2)
+			yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -f "bv+ba/b" "$1"
+			break
+			;;
 
-            2)
-                yt-dlp -o /sdcard/Download/YT_DLP/"%(title)s.%(ext)s" -f "bv+ba/b" "$1"
-                break;;
+		3)
+			echo -e "yt-dlp args:"
+			read -rp "> " -a args
+			yt-dlp "${args[@]}" "$1"
+			break
+			;;
 
-            3)
-                echo -e "yt-dlp args:"
-                read -rp "> " -a args
-                yt-dlp "${args[@]}" "$1"
-                break;;
+		*) echo -e "Invalid Input: ${x}" ;;
 
-            *) echo -e "Invalid Input: ${x}";;
-
-        esac
-    done
-    sleep 5
+		esac
+	done
+	sleep 5
 }
 
-
-if grep -qE "^magnet:" <<< "$1"; then
-    arc "$1"
+if grep -qE "^magnet:" <<<"$1"; then
+	arc <<<"$1"
 else
-    yt_dl "$1"
+	yt_dl "$1"
 fi

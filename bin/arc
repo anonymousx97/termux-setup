@@ -2,18 +2,17 @@
 
 # Auto Resume Downloading Last URL
 if [[ "${1}" == "-r" ]]; then
-    url=$(tail -n 2 "${HOME}/.arc_history")
+	url=$(tail -n 2 "${HOME}/.arc_history")
 
 else
-    echo -e 'Link or Magnet'
-    read -r -p "> " url
+	echo -e 'Link or Magnet'
+	read -r -p "> " url
 
-    # Save the URL
-    echo -e "${url}\n" >> "${HOME}/.arc_history"
+	# Save the URL
+	echo -e "${url}\n" >>"${HOME}/.arc_history"
 fi
 
 [[ "${1}" == "-d" ]] && dir="${2}" || dir="/sdcard/Download"
-
 
 # Start Aria2
 aria2c -d "${dir}" "${url}"
