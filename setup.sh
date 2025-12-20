@@ -88,7 +88,7 @@ start() {
 		"Install Essential packages."
 		"Customize Termux."
 		"Both 1 & 2 (Uses Presets for customisation)"
-		"Setup Debian in Termux."
+		"Setup Native GUI in Termux."
 		"Exit"
 	)
 
@@ -96,7 +96,7 @@ start() {
 		package_setup
 		customize
 		run_all
-		setup_debian
+		setup_native_gui
 		graceful_exit
 	)
 
@@ -432,7 +432,7 @@ save_setup_sh() {
 
 	print "\nSaving setup.sh for future use."
 
-	cat <<-EOF >"${PATH}/setup-termux"
+	cat <<-"EOF" >"${PATH}/setup-termux"
 		#!/usr/bin/env bash
 		bash -c "$(curl -fsSL https://raw.githubusercontent.com/anonymousx97/termux-setup/main/setup.sh)"
 	EOF
