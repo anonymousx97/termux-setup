@@ -254,18 +254,20 @@ setup_debian() {
 setup_native_gui() {
 	apt update -y && apt install -y i3 rofi feh alacritty proot termux-x11-nightly
 
-	download ".config/i3" "config" \
+	download "${HOME}.config/i3" "config" \
 		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/configs/i3"
 
-	download ".config/alacritty" "alacritty.toml" \
+	download "${HOME}.config/alacritty" "alacritty.toml" \
 		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/configs/alacritty.toml"
 
 	download "$HOME" "gui.sh" \
 		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/scripts/gui.sh"
 
 	chmod +x "${HOME}/gui.sh"
+
 	gui_alias="alias gui='~/gui.sh'"
-	! grep -i "$gui_alias" ~/.bashrc && echo "$gui_alias" >>.bashrc
+
+	! grep -q "$gui_alias" ~/.bashrc && echo "$gui_alias" >> ~/.bashrc
 
 }
 
