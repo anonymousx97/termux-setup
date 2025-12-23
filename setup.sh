@@ -267,7 +267,7 @@ setup_native_gui() {
 
 	gui_alias="alias gui='~/gui.sh'"
 
-	! grep -q "$gui_alias" ~/.bashrc && echo "$gui_alias" >> ~/.bashrc
+	! grep -q "$gui_alias" ~/.bashrc && echo -e "\n$gui_alias" >> ~/.bashrc
 
 }
 
