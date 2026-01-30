@@ -2,6 +2,9 @@
 
 # By Ryuk Github | TG : [ anonymousx97 ]
 
+# Error on unbound variables.
+set -u
+
 red="\033[1;31m"
 reset="\033[0m"
 green="\033[1;32m"
