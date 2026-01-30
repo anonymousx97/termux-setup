@@ -402,7 +402,7 @@ apply_ui_change() {
 
 	fi
 
-	download "${HOME}/.termux" "colors.properties" url
+	download "${HOME}/.termux" "colors.properties" "$url"
 
 	download "${HOME}/.termux/" "font.ttf" \
 		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/.termux/MesloLGS_NF_Bold.ttf"
