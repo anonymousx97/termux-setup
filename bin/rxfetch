@@ -14,6 +14,8 @@ reset=$'\033[0m'
 bgyellow=$'\033[1;43;33m'
 bgwhite=$'\033[1;47;37m'
 
+footer_bar="${magenta}━━━${green}━━━${white}━━━${blue}━━━${red}━━━${yellow}━━━${cyan}━━━${reset}"
+
 # Termux
 if [[ $HOME == "/data/data/com.termux/files/home" ]]; then
 
@@ -106,7 +108,7 @@ print_rxfetch() {
 		  ┃                       ┃  $(getUptime)
 		  ┃  ${distro_string}   ┃  $(getMemoryUsage)
 		  ┃                       ┃  $(getDiskUsage)
-		  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${magenta}━━━${green}━━━${white}━━━${blue}━━━${red}━━━${yellow}━━━${cyan}━━━${reset}
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ${footer_bar}
 
 
 	EOF
@@ -114,16 +116,15 @@ print_rxfetch() {
 }
 
 print_stdout() {
-	cat <<-EOF
-		  $(getModel)
-		  $(getDistro)
-		  $(getKernel)
-		  $(getTotalPackages)
-		  $(getShell)
-		  $(getUptime)
-		  $(getMemoryUsage)
-		  $(getDiskUsage)
-	EOF
+  getCodeName
+  getModel
+  getDistro
+  getKernel
+  getTotalPackages
+  getShell
+  getUptime
+  getMemoryUsage
+  getDiskUsage
 }
 
 [[ "$1" =~ ^(--stdout|-s)$ ]] && print_stdout || print_rxfetch
