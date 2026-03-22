@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 function yt_dl() {
 	echo -e "1. Audio : 160kbps Opus\n2. Best Video + Best Audio (Max Resolution)\n3. Download with custom args."
