@@ -294,7 +294,7 @@ setup_aria2() {
 	chmod +x "${PATH}/arc"
 
 	download "${HOME}/.aria2/" "aria2.conf" \
-		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/config/aria2.conf"
+		"https://raw.githubusercontent.com/anonymousx97/termux-setup/main/configs/aria2.conf"
 
 	print_green "Done."
 }
